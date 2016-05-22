@@ -1,0 +1,159 @@
+#app {
+    position: absolute;
+    top: 65;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+.nopadding {
+    padding: 0px;
+}
+.panel {
+    width: 100%;
+    overflow: auto;
+    margin-bottom: 10px;
+}
+.SqlEditor .panel-heading {
+    padding: 5px;
+}
+.window.panel-heading {
+    padding: 1px 5px;
+}
+.loading {
+    width: 50px;
+    margin-top: 15px;
+}
+.pane-cell {
+    padding: 10px;
+    overflow: auto;
+    width: 100%;
+}
+.SqlEditor .header {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+.Workspace .btn-sm {
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    margin-top: 2px;
+    padding: 4px;
+}
+.Workspace hr {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+div.Workspace {
+    height: 100%;
+    margin: 0px;
+}
+.SqlEditor .clock {
+    background-color: orange;
+    padding: 5px;
+}
+
+.p-t-10 {
+    padding-top: 10px;
+}
+.pane-west {
+    height: 100%;
+    overflow: auto;
+}
+.ws-el .ws-el-controls { display: none; }
+.ws-el:hover .ws-el-controls { display: block; }
+.ws-el {
+    border-radius: 4px;
+    padding: 1px 6px;
+    border: 1px solid transparent;
+}
+.circle-running {
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    border: 1px solid #444;
+    background-color: lime;
+}
+.ws-el:hover { border: 1px solid #DDD; }
+
+.handle {
+    cursor: move;
+}
+.window {
+    z-index: 1000;
+    position: absolute;
+    width: 300px;
+    opacity: 0.85;
+    border: 1px solid #AAA;
+    max-height: 600px;
+    box-shadow: rgba(0, 0, 0, 0.8) 5px 5px 25px
+}
+
+.list-group-item {
+    padding: 5px 10px;
+}
+
+.SqlAnvil table {
+    font-size: 12px;
+}
+
+.SqlAnvil table {
+    margin: 0px;
+}
+
+.SqlAnvil .table-condensed > tbody > tr > td {
+    padding: 0px 5px;
+}
+
+.Resizer {
+    background: #000;
+    opacity: .2;
+    z-index: 1;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding;
+    background-clip: padding-box;
+}
+
+.Resizer:hover {
+    -webkit-transition: all 2s ease;
+    transition: all 2s ease;
+}
+
+.Resizer.horizontal {
+    height: 10px;
+    margin: -5px 0;
+    border-top: 5px solid rgba(255, 255, 255, 0);
+    border-bottom: 5px solid rgba(255, 255, 255, 0);
+    cursor: row-resize;
+    width: 100%;
+    padding: 1px;
+}
+
+.Resizer.horizontal:hover {
+    border-top: 5px solid rgba(0, 0, 0, 0.5);
+    border-bottom: 5px solid rgba(0, 0, 0, 0.5);
+}
+
+.Resizer.vertical {
+    width: 9px;
+    margin: 0 -5px;
+    border-left: 5px solid rgba(255, 255, 255, 0);
+    border-right: 5px solid rgba(255, 255, 255, 0);
+    cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+    border-left: 5px solid rgba(0, 0, 0, 0.5);
+    border-right: 5px solid rgba(0, 0, 0, 0.5);
+}
+Resizer.disabled {
+    cursor: not-allowed;
+}
+Resizer.disabled:hover {
+    border-color: transparent;
+}
+
+a.Link {
+    padding: 7px 3px;
+}
