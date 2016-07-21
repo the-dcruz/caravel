@@ -8,7 +8,6 @@ const ResultSet = React.createClass({
     return false;
   },
   render() {
-    console.log(this.props.resultset);
     var cols = this.props.resultset.columns.map((col, i) => {
         return <TableHeaderColumn dataField={col}>{col}</TableHeaderColumn>
     });
@@ -20,7 +19,7 @@ const ResultSet = React.createClass({
       <BootstrapTable
           condensed={true}
           data={this.props.resultset.data}>
-        <TableHeaderColumn dataField="__id" isKey={true}>id</TableHeaderColumn>
+        <TableHeaderColumn dataField="__id" isKey={true} hidden={true}>id</TableHeaderColumn>
         {cols}
       </BootstrapTable>
     );

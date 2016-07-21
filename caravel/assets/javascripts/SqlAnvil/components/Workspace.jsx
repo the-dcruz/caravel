@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';
 import TableWorkspaceElement from './TableWorkspaceElement'
+import QueryWorkspaceElement from './QueryWorkspaceElement'
 import shortid from 'shortid'
 import Select from 'react-select'
 
@@ -18,12 +19,14 @@ const Workspace = React.createClass({
     return {
       tableName: null,
       tableOptions: [],
+      databaseOptions: [],
       tableLoading: false,
     };
   },
   getTableOptions: function(input, callback) {
     var that = this;
-    $.get('/tableasync/api/read', function (data) {
+    var url = '/tableasync/api/read?_oc_DatabaseAsync=database_name&_od_DatabaseAsync=asc';
+    $.get(url, function (data) {
       var options = [];
       for (var i=0; i<data.pks.length; i++) {
         options.push({ value: data.pks[i], label: data.result[i].table_name });
@@ -34,10 +37,10 @@ const Workspace = React.createClass({
       });
     });
   },
-  changeDb: function (dbId) {
+  changeDb: function (db) {
     this.setState({ tableLoading: true });
     var that = this;
-    var url = '/databaseasync/api/read?id=' + dbId;
+    var url = '/databasetablesasync/api/read?_flt_0_id=' + db.value;
     $.get(url, function (data) {
       var tables = data.result[0].all_table_names;
       var options = [];
@@ -114,9 +117,7 @@ const Workspace = React.createClass({
     if (this.props.workspaceQueries.length > 0) {
       var queryElements = this.props.workspaceQueries.map((q) => {
         return(
-          <div className="ws-el">
-            <a href="#">{q.title}</a>
-          </div>
+          <QueryWorkspaceElement query={q}/>
         );
       });
     } else {
@@ -127,7 +128,6 @@ const Workspace = React.createClass({
         </Alert>
       );
     }
-
     return (
       <div className="panel panel-default Workspace">
         {tableOverlayElems}
@@ -140,13 +140,15 @@ const Workspace = React.createClass({
               name="select-db"
               placeholder="[Database]"
               options={this.state.databaseOptions}
+              disabled={(this.state.databaseOptions.length == 0)}
+              isLoading={(this.state.databaseOptions.length == 0)}
               value={(this.props.workspaceDatabase) ? this.props.workspaceDatabase.id : null}
               onChange={this.changeDb}
               autosize={false}
             />
             <div>
               <Select
-                disabled={(!this.props.workspaceDatabase === null)}
+                disabled={(this.props.workspaceDatabase === null)}
                 ref="selectTable"
                 name="select-table"
                 isLoading={this.state.tableLoading}
