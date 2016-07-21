@@ -17,9 +17,14 @@ export const QUERY_EDITOR_SET_AUTORUN = 'QUERY_EDITOR_SET_AUTORUN';
 export const SET_WORKSPACE_DB = 'SET_WORKSPACE_DB';
 export const ADD_WORKSPACE_QUERY = 'ADD_WORKSPACE_QUERY';
 export const REMOVE_WORKSPACE_QUERY = 'REMOVE_WORKSPACE_QUERY';
+export const SET_ACTIVE_QUERY_EDITOR = 'SET_ACTIVE_QUERY_EDITOR';
 
 export function addQueryEditor(queryEditor) {
   return { type: ADD_QUERY_EDITOR, queryEditor };
+}
+
+export function setActiveQueryEditor(queryEditor) {
+  return { type: SET_ACTIVE_QUERY_EDITOR, queryEditor };
 }
 
 export function removeQueryEditor(queryEditor) {

@@ -4,7 +4,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from datetime import datetime
+from datetime import date, datetime
 import decimal
 import functools
 import json
@@ -297,6 +297,8 @@ def json_iso_dttm_ser(obj):
     if val is not None:
         return val
     if isinstance(obj, datetime):
+        obj = obj.isoformat()
+    if isinstance(obj, date):
         obj = obj.isoformat()
     else:
         raise TypeError(

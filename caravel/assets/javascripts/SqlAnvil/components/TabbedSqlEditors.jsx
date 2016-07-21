@@ -5,13 +5,11 @@ import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';
 import SqlEditor from './SqlEditor'
 import shortid from 'shortid'
+import Link from './Link'
 
 var queryCount = 1;
 
 const QueryEditors = React.createClass({
-  getInitialState: function() {
-    return {tabkey: 0};
-  },
   newQueryEditor: function () {
     queryCount++;
     var dbId = (this.props.workspaceDatabase) ? this.props.workspaceDatabase.id : null;
@@ -25,28 +23,37 @@ const QueryEditors = React.createClass({
     this.props.actions.addQueryEditor(qe);
   },
   handleSelect(key) {
-    this.setState({tabkey: key});
+    if (key === 'add_tab') {
+      this.newQueryEditor();
+    } else {
+      this.props.actions.setActiveQueryEditor({ id: key });
+    }
   },
   render: function () {
-    var running = this.props.queries.filter((q) => { return q.state == 'running' });
-    var running = running.map((q) => { return q.sqlEditorId });
     var that = this;
     var editors = this.props.queryEditors.map(function (qe, i) {
-      var title = qe.title;
-      if (running.includes(qe.id)) {
-        title = <div>{qe.title} <div className='circle-running'/></div>;
-      }
       var latestQuery = null;
       that.props.queries.forEach((q) => {
         if (q.id == qe.latestQueryId) {
           latestQuery = q;
         }
       });
+      var state = (latestQuery) ? latestQuery.state : '';
+      var tabTitle = (
+        <div>
+          <div className={"circle " + state} /> {qe.title}
+          <Link
+              onClick={that.props.actions.removeQueryEditor.bind(that, qe)}
+              className="fa fa-close"
+              href="#"
+              tooltip="Close tab"/>
+        </div>
+      );
       return (
         <Tab
           key={qe.id}
-          title={title}
-          eventKey={i}>
+          title={tabTitle}
+          eventKey={qe.id}>
             <SqlEditor
               name={qe.id}
               queryEditor={qe}
@@ -55,13 +62,9 @@ const QueryEditors = React.createClass({
         </Tab>);
     });
     return (
-      <Tabs activeKey={this.state.tabkey} onSelect={this.handleSelect}>
+      <Tabs activeKey={this.props.tabHistory[this.props.tabHistory.length-1]} onSelect={this.handleSelect}>
         {editors}
-        <Tab title="+" eventKey={this.props.queryEditors.length}>
-          <Button onClick={this.newQueryEditor}>
-            Add Tab
-          </Button>
-        </Tab>
+        <Tab title="+" eventKey="add_tab"/>
       </Tabs>
     );
   }
@@ -71,7 +74,8 @@ function mapStateToProps(state) {
   return {
     queryEditors: state.queryEditors,
     queries: state.queries,
-    workspaceDatabase: state.workspaceDatabase
+    workspaceDatabase: state.workspaceDatabase,
+    tabHistory: state.tabHistory,
   };
 }
 function mapDispatchToProps(dispatch) {

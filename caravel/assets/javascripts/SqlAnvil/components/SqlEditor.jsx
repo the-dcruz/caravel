@@ -59,11 +59,13 @@ const SqlEditor = React.createClass({
     }
   },
   startQuery: function () {
+    var that = this;
     var query = {
       id: shortid.generate(),
       sqlEditorId: this.props.queryEditor.id,
       sql: this.state.sql,
       state: 'running',
+      tab: this.props.queryEditor.title,
       dbId: this.props.queryEditor.dbId,
       startDttm: moment()
     };
@@ -74,17 +76,27 @@ const SqlEditor = React.createClass({
       json: true
     };
     this.props.actions.startQuery(query);
-    $.post(url, data, (results) => {
-      clearInterval(this.timer);
-      this.props.actions.querySuccess(query, results);
-      this.render();
-    }, "json").fail((x) => {
-      clearInterval(this.timer);
-      var msg = JSON.parse(x.responseText).msg;
-      this.props.actions.queryFailed(query, msg);
+    $.ajax({
+      type: "POST",
+      dataType: "json",
+      url,
+      data,
+      success: function (data) {
+        clearInterval(that.timer);
+        that.props.actions.querySuccess(query, data);
+      },
+      error: function (err, err2) {
+        clearInterval(this.timer);
+        var msg = "";
+        try {
+          msg = JSON.parse(x.responseText).msg;
+        } catch (e) {
+          msg = "Unknown error has occurred";
+        }
+        that.props.actions.queryFailed(query, msg);
+      },
     });
     this.timer = setInterval(this.stopwatch, 500);
-    this.render();
   },
   stopQuery: function () {
     this.props.actions.stopQuery(this.props.latestQuery);
@@ -105,6 +117,7 @@ const SqlEditor = React.createClass({
     this.props.actions.addWorkspaceQuery({
       id: shortid.generate(),
       sql: this.state.sql,
+      dbId: this.props.queryEditor.dbId,
       title: this.props.queryEditor.title,
     });
   },
@@ -156,7 +169,7 @@ const SqlEditor = React.createClass({
     var timerSpan = null;
     if (this.props.latestQuery && this.props.latestQuery.state == 'running') {
       timerSpan= (
-        <span className="label label-info">
+        <span className="label label-warning">
           {this.state.clockStr}
         </span>
       );
@@ -164,23 +177,14 @@ const SqlEditor = React.createClass({
     var rightButtons = (
       <ButtonGroup style={{display: 'inline'}}>
         <ButtonWithTooltip
-            tooltip="CREATE TABLE AS ...">
-          <i className="fa fa-archive"/>
-        </ButtonWithTooltip>
-        <ButtonWithTooltip
             onClick={this.renameTab}
             tooltip="Rename this tab">
-            <i className="fa fa-edit"/>
+            <i className="fa fa-edit"/>&nbsp;
         </ButtonWithTooltip>
         <ButtonWithTooltip
             tooltip="Save this query in your workspace"
             onClick={this.addWorkspaceQuery}>
-          <i className="fa fa-save"/>
-        </ButtonWithTooltip>
-        <ButtonWithTooltip
-          tooltip="Close this tab"
-          onClick={this.props.actions.removeQueryEditor.bind(this, this.props.queryEditor)}>
-            <i className="fa fa-close"/>
+          <i className="fa fa-save"/>&nbsp;
         </ButtonWithTooltip>
       </ButtonGroup>
     );
@@ -192,6 +196,12 @@ const SqlEditor = React.createClass({
               <div className="pull-left">
                 <ButtonGroup>
                   {runButton}
+                  <ButtonWithTooltip
+                      tooltip="Create a temporary table that holds the resultset"
+                      onClick={this.startAsyncQuery}
+                      disabled={true}>
+                    <i className="fa fa-play"/> CREATE TABLE AS
+                  </ButtonWithTooltip>
                 </ButtonGroup>
                 {timerSpan}
               </div>

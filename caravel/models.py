@@ -397,9 +397,12 @@ class Database(Model, AuditMixinNullable):
         return self.sqlalchemy_uri
 
     @property
+    def inspector(self):
+        engine = self.get_sqla_engine()
+        return sqla.inspect(engine)
+
     def all_table_names(self):
-        eng = self.get_sqla_engine()
-        return sorted(eng.table_names())
+        return sorted(self.inspector.get_table_names())
 
     def grains(self):
         """Defines time granularity database-specific expressions.
@@ -497,9 +500,7 @@ class Database(Model, AuditMixinNullable):
             autoload_with=self.get_sqla_engine())
 
     def get_columns(self, table_name):
-        engine = self.get_sqla_engine()
-        insp = reflection.Inspector.from_engine(engine)
-        return insp.get_columns(table_name)
+        return self.inspector.get_columns(table_name)
 
     @property
     def sqlalchemy_uri_decrypted(self):

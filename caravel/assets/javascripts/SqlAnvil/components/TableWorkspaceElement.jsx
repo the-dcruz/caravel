@@ -26,7 +26,7 @@ const TableWorkspaceElement = React.createClass({
       title: this.props.table.name,
       dbId: this.props.table.dbId,
       autorun: true,
-      sql
+      sql,
     };
     this.props.actions.addQueryEditor(qe);
   },
@@ -44,8 +44,7 @@ const TableWorkspaceElement = React.createClass({
       metadata = this.props.table.columns.map((col) => {
         return (
           <div
-              className="clearfix"
-              style={{'margin-left': '10px', 'border-bottom': 'solid 1px #DDD'}}>
+              className="clearfix">
             <span className="pull-left">{col.name}</span>
             <span className="pull-right">{col.type}</span>
           </div>

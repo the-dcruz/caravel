@@ -423,9 +423,14 @@ appbuilder.add_view(
 
 
 class DatabaseAsync(DatabaseView):
-    list_columns = ['id', 'database_name', 'table_names', 'all_table_names']
+    list_columns = ['id', 'database_name']
 
 appbuilder.add_view_no_menu(DatabaseAsync)
+
+class DatabaseTablesAsync(DatabaseView):
+    list_columns = ['id', 'all_table_names']
+
+appbuilder.add_view_no_menu(DatabaseTablesAsync)
 
 class TableModelView(CaravelModelView, DeleteMixin):  # noqa
     datamodel = SQLAInterface(models.SqlaTable)
@@ -1190,15 +1195,18 @@ class Caravel(BaseCaravelView):
     @expose("/table/<database_id>/<table_name>/")
     @log_this
     def table(self, database_id, table_name):
-        mydb = db.session.query(models.Database).filter_by(id=database_id).first()
+        mydb = db.session.query(models.Database).filter_by(id=database_id).one()
         cols = []
+        t = mydb.get_columns(table_name)
+        for col in t:
+            cols.append({
+                'name': col['name'],
+                'type': '{}'.format(col['type']),
+            })
         tbl = {
-            'columns': cols,
             'name': table_name,
+            'columns': cols,
         }
-        for col in mydb.get_columns(table_name):
-            col['type'] = str(col['type'])
-            cols.append(col)
         return Response(json.dumps(tbl), mimetype="application/json")
 
     @has_access
