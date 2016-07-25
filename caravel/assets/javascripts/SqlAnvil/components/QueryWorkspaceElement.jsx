@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react'
 import { Alert, Button, ButtonGroup } from 'react-bootstrap'
 import Link from './Link'
-import TableOverlay from './TableOverlay'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';

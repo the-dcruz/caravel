@@ -64,7 +64,7 @@ const QueryEditors = React.createClass({
     return (
       <Tabs activeKey={this.props.tabHistory[this.props.tabHistory.length-1]} onSelect={this.handleSelect}>
         {editors}
-        <Tab title="+" eventKey="add_tab"/>
+        <Tab title={<div><i className="fa fa-plus-circle"/>&nbsp;</div>} eventKey="add_tab"/>
       </Tabs>
     );
   }

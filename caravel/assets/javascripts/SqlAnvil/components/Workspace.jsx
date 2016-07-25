@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react'
 import { Alert, Button, ButtonGroup } from 'react-bootstrap'
 import Link from './Link'
-import TableOverlay from './TableOverlay'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';
@@ -100,20 +99,6 @@ const Workspace = React.createClass({
       });
     }
 
-    var tableOverlayElems = [];
-    var i = 0;
-    this.props.tables.forEach(function (table) {
-      if (table.showPopup) {
-        tableOverlayElems.push(
-          <TableOverlay
-            key={table.name}
-            table={table}
-            defaultPosition={{ x: i*100, y: i*50 }}/>
-        );
-        i++;
-      }
-    });
-
     if (this.props.workspaceQueries.length > 0) {
       var queryElements = this.props.workspaceQueries.map((q) => {
         return(
@@ -130,7 +115,6 @@ const Workspace = React.createClass({
     }
     return (
       <div className="panel panel-default Workspace">
-        {tableOverlayElems}
         <div className="panel-heading">
           Workspace
         </div>

@@ -8,11 +8,13 @@ const ButtonWithTooltip = React.createClass({
     className: React.PropTypes.string,
     onClick: React.PropTypes.func,
     disabled: React.PropTypes.bool,
+    placement: React.PropTypes.string,
   },
   getDefaultProps() {
     return {
       onClick: () => {},
       disabled: false,
+      placement: 'top',
     };
   },
   render() {
@@ -22,7 +24,11 @@ const ButtonWithTooltip = React.createClass({
       </Tooltip>
     );
     return (
-      <OverlayTrigger overlay={tooltip} delayShow={300} delayHide={150}>
+      <OverlayTrigger
+          overlay={tooltip}
+          delayShow={300}
+          placement={this.props.placement}
+          delayHide={150}>
         <Button
           onClick={this.props.onClick}
           disabled={this.props.disabled}
