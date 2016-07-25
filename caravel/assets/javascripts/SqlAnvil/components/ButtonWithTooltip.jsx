@@ -9,7 +9,7 @@ const ButtonWithTooltip = React.createClass({
     onClick: React.PropTypes.func,
     disabled: React.PropTypes.bool,
   },
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
       onClick: () => {},
       disabled: false,

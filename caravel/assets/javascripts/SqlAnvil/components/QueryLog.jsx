@@ -15,7 +15,15 @@ const STATE_COLOR_MAP = {
 };
 
 const QueryLog = React.createClass({
-  render: function () {
+  propTypes: {
+    queries: React.PropTypes.array,
+  },
+  getDefaultProps() {
+    return {
+      queries: [],
+    };
+  },
+  render() {
     var data = this.props.queries.map((q) => {
       var q = Object.assign({}, q);
       var since = (q.endDttm) ? q.endDttm : moment();
@@ -55,7 +63,6 @@ const QueryLog = React.createClass({
 
 function mapStateToProps(state) {
   return {
-    queryEditors: state.queryEditors,
     queries: state.queries
   };
 }
