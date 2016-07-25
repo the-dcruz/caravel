@@ -113,6 +113,9 @@ const SqlEditor = React.createClass({
     var newTitle = prompt("Enter a new title for the tab");
     this.props.actions.queryEditorSetTitle(this.props.queryEditor, newTitle);
   },
+  notImplemented() {
+    alert("Not implemented");
+  },
   addWorkspaceQuery: function () {
     this.props.actions.addWorkspaceQuery({
       id: shortid.generate(),
@@ -185,6 +188,16 @@ const SqlEditor = React.createClass({
             tooltip="Save this query in your workspace"
             onClick={this.addWorkspaceQuery}>
           <i className="fa fa-save"/>&nbsp;
+        </ButtonWithTooltip>
+        <ButtonWithTooltip
+            tooltip="Export to .CSV"
+            onClick={this.notImplemented}>
+          <i className="fa fa-file-text-o"/>.csv
+        </ButtonWithTooltip>
+        <ButtonWithTooltip
+            tooltip="Export to .JSON"
+            onClick={this.notImplemented}>
+          <i className="fa fa-file-code-o"/>.json
         </ButtonWithTooltip>
       </ButtonGroup>
     );

@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react'
 import { Alert, Button, ButtonGroup } from 'react-bootstrap'
 import Link from './Link'
-import TableOverlay from './TableOverlay'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';
@@ -67,12 +66,6 @@ const TableWorkspaceElement = React.createClass({
       <div className="ws-el">
         {buttonToggle}
         <ButtonGroup className="ws-el-controls pull-right">
-          <Link
-              className="fa fa-info-circle"
-              onClick={this.props.actions.showTablePopup.bind(this, this.props.table)}
-              tooltip="Show table structure in popup"
-              href="#"
-          />
           <Link
               className="fa fa-play"
               onClick={this.selectStar}

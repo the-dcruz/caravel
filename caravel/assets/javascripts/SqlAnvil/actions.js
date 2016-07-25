@@ -2,8 +2,6 @@ export const ADD_QUERY_EDITOR = 'ADD_QUERY_EDITOR';
 export const REMOVE_QUERY_EDITOR = 'REMOVE_QUERY_EDITOR';
 export const ADD_TABLE = 'ADD_TABLE';
 export const REMOVE_TABLE = 'REMOVE_TABLE';
-export const HIDE_TABLE_POPUP = 'HIDE_TABLE_POPUP';
-export const SHOW_TABLE_POPUP = 'SHOW_TABLE_POPUP';
 export const START_QUERY = 'START_QUERY';
 export const STOP_QUERY = 'STOP_QUERY';
 export const END_QUERY = 'END_QUERY';
@@ -45,14 +43,6 @@ export function queryEditorSetTitle(queryEditor, title) {
 
 export function addTable(table) {
   return { type: ADD_TABLE, table };
-}
-
-export function hideTablePopup(table) {
-  return { type: HIDE_TABLE_POPUP, table };
-}
-
-export function showTablePopup(table) {
-  return { type: SHOW_TABLE_POPUP, table };
 }
 
 export function expandTable(table) {

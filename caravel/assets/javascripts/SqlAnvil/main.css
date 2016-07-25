@@ -115,6 +115,8 @@ div.Workspace {
     padding: 0px !important;
     margin: 0px;
     border: none;
+    font-size: 11px;
+    line-height: 125%;
     background-color: transparent !important;
 }
 

@@ -2,9 +2,7 @@ import moment from 'moment';
 import {
   ADD_QUERY_EDITOR,
   ADD_TABLE, REMOVE_TABLE,
-  HIDE_TABLE_POPUP,
   REMOVE_QUERY_EDITOR,
-  SHOW_TABLE_POPUP,
   START_QUERY,
   STOP_QUERY,
   QUERY_SUCCESS,
@@ -95,12 +93,6 @@ function sqlAnvilReducer(state = initialState, action) {
 
     case ADD_TABLE:
       return addToArr(state, 'tables', action.table);
-
-    case HIDE_TABLE_POPUP:
-      return alterInArr(state, 'tables', action.table, { showPopup: false });
-
-    case SHOW_TABLE_POPUP:
-      return alterInArr(state, 'tables', action.table, { showPopup: true });
 
     case EXPAND_TABLE:
       return alterInArr(state, 'tables', action.table, { expanded: true });
