@@ -9,7 +9,6 @@ import SplitPane from 'react-split-pane'
 
 import Workspace from './components/Workspace'
 import TabbedSqlEditors from './components/TabbedSqlEditors'
-import { QueryLog } from './components/Mocks'
 
 import { createStore } from 'redux'
 import { Provider } from 'react-redux';

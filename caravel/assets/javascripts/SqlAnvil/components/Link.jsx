@@ -3,6 +3,19 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 
 
 const Link = React.createClass({
+  propTypes: {
+    className: React.PropTypes.string,
+    href: React.PropTypes.string,
+    onClick: React.PropTypes.func,
+    tooltip: React.PropTypes.string,
+  },
+  getDefaultProps() {
+    return {
+      disabled: false,
+      href: '#',
+      onClick: () => {},
+    };
+  },
   render() {
     let tooltip = (
       <Tooltip id="tooltip">

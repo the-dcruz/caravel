@@ -3,7 +3,7 @@ import { Button, ButtonGroup, Label } from 'react-bootstrap';
 
 import AceEditor from 'react-ace';
 import 'brace/mode/sql';
-import 'brace/theme/chrome';
+import 'brace/theme/github';
 import 'brace/ext/language_tools';
 
 import { bindActionCreators } from 'redux';
@@ -143,7 +143,7 @@ const SqlEditor = React.createClass({
         <AceEditor
           mode="sql"
           name={this.props.name}
-          theme="chrome"
+          theme="github"
           minLines={5}
           maxLines={30}
           onChange={this.textChange}
