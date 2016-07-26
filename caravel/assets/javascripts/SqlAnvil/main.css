@@ -5,6 +5,15 @@
     right: 0;
     bottom: 0;
 }
+.inlineBlock {
+    display: inline-block;
+}
+.valignTop {
+    vertical-align: top;
+}
+.inline {
+    display: inline;
+}
 .nopadding {
     padding: 0px;
 }
@@ -49,9 +58,14 @@ div.Workspace {
     background-color: orange;
     padding: 5px;
 }
-
 .p-t-10 {
     padding-top: 10px;
+}
+.m-r-5 {
+    margin-right: 5px;
+}
+.no-shadow {
+    box-shadow: none;
 }
 .pane-west {
     height: 100%;

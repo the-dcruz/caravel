@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Tab, Tabs } from 'react-bootstrap';
+import { Button, DropdownButton, MenuItem, Tab, Tabs } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';
@@ -10,6 +10,12 @@ import Link from './Link'
 var queryCount = 1;
 
 const QueryEditors = React.createClass({
+  renameTab: function (qe) {
+    var newTitle = prompt("Enter a new title for the tab");
+    if (newTitle) {
+      this.props.actions.queryEditorSetTitle(qe, newTitle);
+    }
+  },
   newQueryEditor: function () {
     queryCount++;
     var dbId = (this.props.workspaceDatabase) ? this.props.workspaceDatabase.id : null;
@@ -41,12 +47,18 @@ const QueryEditors = React.createClass({
       var state = (latestQuery) ? latestQuery.state : '';
       var tabTitle = (
         <div>
-          <div className={"circle " + state} /> {qe.title}
-          <Link
-              onClick={that.props.actions.removeQueryEditor.bind(that, qe)}
-              className="fa fa-close"
-              href="#"
-              tooltip="Close tab"/>
+          <div className={"circle " + state} /> {qe.title} {' '}
+          <DropdownButton
+              bsSize="small"
+              className="no-shadow"
+              id="bg-vertical-dropdown-1">
+            <MenuItem eventKey="1" onClick={that.props.actions.removeQueryEditor.bind(that, qe)}>
+              <i className="fa fa-close" /> close tab
+            </MenuItem>
+            <MenuItem eventKey="2" onClick={that.renameTab.bind(this, qe)}>
+              <i className="fa fa-i-cursor" /> rename tab
+            </MenuItem>
+          </DropdownButton>
         </div>
       );
       return (

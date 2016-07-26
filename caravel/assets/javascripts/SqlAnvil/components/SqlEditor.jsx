@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, ButtonGroup, Label } from 'react-bootstrap';
+import { Button, ButtonGroup, Label, FormControl, FormGroup } from 'react-bootstrap';
 
 import AceEditor from 'react-ace';
 import 'brace/mode/sql';
@@ -39,7 +39,7 @@ const SqlEditor = React.createClass({
   fetchDatabaseOptions: function(input, callback) {
     this.setState({ databaseLoading: true });
     var that = this;
-    var url = '/databaseasync/api/read';
+    var url = "//" + window.location.host + '/databaseasync/api/read';
     $.get(url, function (data) {
       var options = data.result.map((db) => {
         return { value: db.id, label: db.database_name };
@@ -69,7 +69,7 @@ const SqlEditor = React.createClass({
       dbId: this.props.queryEditor.dbId,
       startDttm: moment()
     };
-    var url = "/caravel/sql_json/"
+    var url = "//" + window.location.host + "/caravel/sql_json/"
     var data = {
       sql: this.state.sql,
       database_id: this.props.queryEditor.dbId,
@@ -83,15 +83,19 @@ const SqlEditor = React.createClass({
       data,
       success: function (data) {
         clearInterval(that.timer);
-        that.props.actions.querySuccess(query, data);
+        try {
+          that.props.actions.querySuccess(query, data);
+        } catch (e) {
+          that.props.actions.queryFailed(query, e);
+        }
       },
       error: function (err, err2) {
         clearInterval(this.timer);
         var msg = "";
         try {
-          msg = JSON.parse(x.responseText).msg;
+          msg = err.responseJSON.msg;
         } catch (e) {
-          msg = "Unknown error has occurred";
+          msg = (err.responseText) ? err.responseText : e;
         }
         that.props.actions.queryFailed(query, msg);
       },
@@ -109,10 +113,6 @@ const SqlEditor = React.createClass({
   textChange: function (text) {
     this.setState({ sql: text });
   },
-  renameTab: function () {
-    var newTitle = prompt("Enter a new title for the tab");
-    this.props.actions.queryEditorSetTitle(this.props.queryEditor, newTitle);
-  },
   notImplemented() {
     alert("Not implemented");
   },
@@ -124,7 +124,11 @@ const SqlEditor = React.createClass({
       title: this.props.queryEditor.title,
     });
   },
-  render: function () {
+  ctasChange() {
+  },
+  visualize() {
+  },
+  render() {
     this.props.callback();
     var body = (<div/>);
     if (this.props.latestQuery) {
@@ -141,49 +145,34 @@ const SqlEditor = React.createClass({
     else {
       var results = <div className="alert alert-info">Run a query to display results here</div>
     }
-    body = (
-      <div>
-        <AceEditor
-          mode="sql"
-          name={this.props.name}
-          theme="github"
-          minLines={5}
-          maxLines={30}
-          onChange={this.textChange}
-          height="200px"
-          width="100%"
-          editorProps={{$blockScrolling: true}}
-          enableBasicAutocompletion={true}
-          value={this.state.sql}/>
-        {results}
-      </div>
-    );
-    var runButton = (
-      <Button onClick={this.startQuery} disabled={!(this.props.queryEditor.dbId)}>
-        <i className="fa fa-play"/> Run
-      </Button>
+    var runButtons = (
+      <ButtonGroup className="inline m-r-5">
+        <Button onClick={this.startQuery} disabled={!(this.props.queryEditor.dbId)}>
+          <i className="fa fa-table"/> Run
+        </Button>
+        <Button onClick={this.notImpemented} disabled={!(this.props.queryEditor.dbId)}>
+          <i className="fa fa-line-chart"/> Visualize
+        </Button>
+      </ButtonGroup>
     );
     if (this.props.latestQuery && this.props.latestQuery.state == 'running') {
-      runButton = (
-      <Button onClick={this.stopQuery}>
-        <a className="fa fa-stop"/> Stop
-      </Button>);
+      runButtons = (
+      <ButtonGroup className="inline m-r-5">
+        <Button onClick={this.stopQuery}>
+          <a className="fa fa-stop"/> Stop
+        </Button>
+      </ButtonGroup>);
     }
     var timerSpan = null;
     if (this.props.latestQuery && this.props.latestQuery.state == 'running') {
       timerSpan= (
-        <span className="label label-warning">
+        <span className="label label-warning inlineBlock">
           {this.state.clockStr}
         </span>
       );
     }
     var rightButtons = (
-      <ButtonGroup style={{display: 'inline'}}>
-        <ButtonWithTooltip
-            onClick={this.renameTab}
-            tooltip="Rename this tab">
-            <i className="fa fa-edit"/>&nbsp;
-        </ButtonWithTooltip>
+      <ButtonGroup className="inlineblock">
         <ButtonWithTooltip
             tooltip="Save this query in your workspace"
             onClick={this.addWorkspaceQuery}>
@@ -205,22 +194,22 @@ const SqlEditor = React.createClass({
       <div className="SqlEditor">
         <div>
           <div>
+            <AceEditor
+              mode="sql"
+              name={this.props.name}
+              theme="github"
+              minLines={5}
+              maxLines={30}
+              onChange={this.textChange}
+              height="200px"
+              width="100%"
+              editorProps={{$blockScrolling: true}}
+              enableBasicAutocompletion={true}
+              value={this.state.sql}/>
             <div className="clearfix header">
               <div className="pull-left">
-                <ButtonGroup>
-                  {runButton}
-                  <ButtonWithTooltip
-                      tooltip="Create a temporary table that holds the resultset"
-                      onClick={this.startAsyncQuery}
-                      disabled={true}>
-                    <i className="fa fa-play"/> CREATE TABLE AS
-                  </ButtonWithTooltip>
-                </ButtonGroup>
-                {timerSpan}
-              </div>
-              <div className="pull-right">
-                {rightButtons}
-                <div style={{display: 'inline-block'}}>
+                {runButtons}
+                <div className="inlineblock">
                   <Select
                     name="select-db"
                     placeholder="[Database]"
@@ -230,10 +219,17 @@ const SqlEditor = React.createClass({
                     onChange={this.changeDb}
                   />
                 </div>
+                <span className="inlineblock valignTop" style={{ height: '20px' }}>
+                  <input type="text" className="form-control" placeholder="CREATE TABLE AS"/>
+                </span>
+              </div>
+              <div className="pull-right">
+                {timerSpan}
+                {rightButtons}
               </div>
             </div>
+            {results}
           </div>
-          {body}
         </div>
       </div>
     )
