@@ -14,7 +14,6 @@ import { createStore } from 'redux'
 import { Provider } from 'react-redux';
 
 import sqlAnvilReducer from './reducers'
-import SouthPane from './components/SouthPane'
 
 require('./main.css')
 
@@ -28,15 +27,8 @@ const App = React.createClass({
           <div className="pane-cell pane-west">
             <Workspace/>
           </div>
-          <div>
-            <SplitPane split="horizontal" minSize={100} defaultSize={400}>
-              <div className="pane-cell">
-                <TabbedSqlEditors/>
-              </div>
-              <div className="pane-cell nopadding">
-                <SouthPane/>
-              </div>
-            </SplitPane>
+          <div className="pane-cell">
+            <TabbedSqlEditors/>
           </div>
         </SplitPane>
       </div>

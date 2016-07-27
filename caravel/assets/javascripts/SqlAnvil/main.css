@@ -17,6 +17,9 @@
 .nopadding {
     padding: 0px;
 }
+.panel.nopadding .panel-body {
+    padding: 0px;
+}
 .panel {
     width: 100%;
     overflow: auto;
@@ -58,14 +61,31 @@ div.Workspace {
     background-color: orange;
     padding: 5px;
 }
+.sql-toolbar {
+    border-bottom: 1px solid #DDD;
+    border-top: 1px solid #DDD;
+}
+.padded {
+    padding: 10px;
+}
+.nav-pills {
+    padding-bottom: 5px;
+}
 .p-t-10 {
     padding-top: 10px;
+}
+.p-t-5 {
+    padding-top: 5px;
 }
 .m-r-5 {
     margin-right: 5px;
 }
+.m-t-5 {
+    margin-top: 5px;
+}
 .no-shadow {
     box-shadow: none;
+    background-color: transparent;
 }
 .pane-west {
     height: 100%;
@@ -84,6 +104,9 @@ div.Workspace {
     height: 10px;
     display: inline-block;
     border: 1px solid #444;
+}
+.Pane2 {
+    width: 0;
 }
 .running {
     background-color: lime;
