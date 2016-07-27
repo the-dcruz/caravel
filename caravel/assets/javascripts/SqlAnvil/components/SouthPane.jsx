@@ -1,13 +1,24 @@
 import { Tab, Tabs } from 'react-bootstrap';
 import QueryLog from './QueryLog'
+import ResultSet from './ResultSet';
 import React from 'react';
-import { BootstrapTable } from 'react-bootstrap-table';
 
 const SouthPane = React.createClass({
-  tableChanged: function (data) {
-    console.log(data);
-  },
   render: function () {
+    if (this.props.latestQuery) {
+      if (this.props.latestQuery.state == 'running') {
+        var results = <img className="loading" src="/static/assets/images/loading.gif"/>;
+      }
+      else if (this.props.latestQuery.state == 'failed') {
+        var results = <div className="alert alert-danger">{this.props.latestQuery.msg}</div>;
+      }
+      else if (this.props.latestQuery.state == 'success') {
+        var results = <ResultSet resultset={this.props.latestQuery.results} />
+      }
+    }
+    else {
+      var results = <div className="alert alert-info">Run a query to display results here</div>
+    }
     var data = [];
     var selectRowProp = {
       mode: "checkbox",
@@ -16,24 +27,16 @@ const SouthPane = React.createClass({
     var cellEditProp = {
       mode: "click",
       blurToSave: true,
-      //afterSaveCell: onAfterSaveCell
     }
     return (
-      <Tabs>
-        <Tab title="Query Log" eventKey={1}>
-          <QueryLog/>
+      <Tabs bsStyle="pills">
+        <Tab title="Results" eventKey={1}>
+          <div style={{ overflow: 'auto' }}>
+            {results}
+          </div>
         </Tab>
-        <Tab title="Templating" eventKey={2}>
-          <BootstrapTable
-              data={data}
-              onChange={this.tableChanged}
-              insertRow={true}
-              deleteRow={true}
-              selectRow={selectRowProp}
-              cellEdit={cellEditProp}>
-            <TableHeaderColumn dataField="variable" editable={true} isKey={true}>Variable</TableHeaderColumn>
-            <TableHeaderColumn dataField="value" editable={true}>Value</TableHeaderColumn>
-          </BootstrapTable>
+        <Tab title="Query Log" eventKey={2}>
+          <QueryLog/>
         </Tab>
       </Tabs>
     );

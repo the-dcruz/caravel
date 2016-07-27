@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, DropdownButton, MenuItem, Tab, Tabs } from 'react-bootstrap';
+import { Button, DropdownButton, MenuItem, Panel, Tab, Tabs } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';
@@ -66,15 +66,17 @@ const QueryEditors = React.createClass({
           key={qe.id}
           title={tabTitle}
           eventKey={qe.id}>
-            <SqlEditor
-              name={qe.id}
-              queryEditor={qe}
-              latestQuery={latestQuery}
-              callback={that.render.bind(that)}/>
+            <Panel className="nopadding">
+              <SqlEditor
+                name={qe.id}
+                queryEditor={qe}
+                latestQuery={latestQuery}
+                callback={that.render.bind(that)}/>
+            </Panel>
         </Tab>);
     });
     return (
-      <Tabs activeKey={this.props.tabHistory[this.props.tabHistory.length-1]} onSelect={this.handleSelect}>
+      <Tabs bsStyle="pills" activeKey={this.props.tabHistory[this.props.tabHistory.length-1]} onSelect={this.handleSelect}>
         {editors}
         <Tab title={<div><i className="fa fa-plus-circle"/>&nbsp;</div>} eventKey="add_tab"/>
       </Tabs>

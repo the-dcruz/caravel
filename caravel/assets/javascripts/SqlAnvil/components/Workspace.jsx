@@ -154,7 +154,6 @@ const Workspace = React.createClass({
               {queryElements}
             </div>
             <hr/>
-
           </div>
         </div>
       </div>

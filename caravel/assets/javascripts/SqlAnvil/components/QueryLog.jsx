@@ -7,6 +7,7 @@ import Link from './Link'
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/styles';
 import { Table } from 'reactable';
+import { Alert } from 'react-bootstrap'
 
 const STATE_COLOR_MAP = {
   failed: 'red',
@@ -24,7 +25,9 @@ const QueryLog = React.createClass({
     };
   },
   render() {
-    var data = this.props.queries.map((query) => {
+    var activeQeId = this.props.tabHistory[this.props.tabHistory.length-1];
+    var data = this.props.queries.filter((q) => { return (q.sqlEditorId === activeQeId); });
+    data = data.map((query) => {
       var q = Object.assign({}, query);
       var since = (q.endDttm) ? q.endDttm : moment();
       var duration = since.valueOf() - q.startDttm.valueOf();
@@ -61,18 +64,27 @@ const QueryLog = React.createClass({
 
       return q;
     }).reverse();
-    return (
-      <Table
-          columns={['state', 'started', 'duration', 'tab', 'rows', 'sql', 'actions']}
-          className="table table-condensed"
-          data={data}/>
-    )
+    if (data.length >0) {
+      return (
+        <Table
+            columns={['state', 'started', 'duration', 'tab', 'rows', 'sql', 'actions']}
+            className="table table-condensed"
+            data={data}/>
+      )
+    } else {
+      return (
+        <Alert bsStyle="info">
+          No query history yet...
+        </Alert>
+      );
+    }
   }
 });
 
 function mapStateToProps(state) {
   return {
-    queries: state.queries
+    queries: state.queries,
+    tabHistory: state.tabHistory,
   };
 }
 function mapDispatchToProps(dispatch) {

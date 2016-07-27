@@ -13,7 +13,7 @@ import moment from 'moment';
 import shortid from 'shortid';
 import Select from 'react-select';
 import ButtonWithTooltip from './ButtonWithTooltip';
-import ResultSet from './ResultSet';
+import SouthPane from './SouthPane'
 
 
 // CSS
@@ -131,20 +131,6 @@ const SqlEditor = React.createClass({
   render() {
     this.props.callback();
     var body = (<div/>);
-    if (this.props.latestQuery) {
-      if (this.props.latestQuery.state == 'running') {
-        var results = <img className="loading" src="/static/assets/images/loading.gif"/>;
-      }
-      else if (this.props.latestQuery.state == 'failed') {
-        var results = <div className="alert alert-danger">{this.props.latestQuery.msg}</div>;
-      }
-      else if (this.props.latestQuery.state == 'success') {
-        var results = <ResultSet resultset={this.props.latestQuery.results} />
-      }
-    }
-    else {
-      var results = <div className="alert alert-info">Run a query to display results here</div>
-    }
     var runButtons = (
       <ButtonGroup className="inline m-r-5">
         <Button onClick={this.startQuery} disabled={!(this.props.queryEditor.dbId)}>
@@ -206,10 +192,10 @@ const SqlEditor = React.createClass({
               editorProps={{$blockScrolling: true}}
               enableBasicAutocompletion={true}
               value={this.state.sql}/>
-            <div className="clearfix header">
+            <div className="clearfix sql-toolbar padded">
               <div className="pull-left">
                 {runButtons}
-                <div className="inlineblock">
+                <div className="inlineblock m-r-5">
                   <Select
                     name="select-db"
                     placeholder="[Database]"
@@ -228,7 +214,9 @@ const SqlEditor = React.createClass({
                 {rightButtons}
               </div>
             </div>
-            {results}
+            <div className="padded">
+              <SouthPane latestQuery={this.props.latestQuery} sqlEditor={this} />
+            </div>
           </div>
         </div>
       </div>
