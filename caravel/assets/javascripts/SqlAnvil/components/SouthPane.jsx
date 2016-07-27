@@ -1,6 +1,7 @@
 import { Tab, Tabs } from 'react-bootstrap';
 import QueryLog from './QueryLog'
 import React from 'react';
+import { BootstrapTable } from 'react-bootstrap-table';
 
 const SouthPane = React.createClass({
   tableChanged: function (data) {
