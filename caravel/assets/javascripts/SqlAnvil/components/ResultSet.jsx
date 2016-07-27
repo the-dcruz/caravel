@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react'
-import { OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Alert } from 'react-bootstrap'
 import { Table } from 'reactable';
 
 
@@ -8,14 +8,17 @@ const ResultSet = React.createClass({
     return false;
   },
   render() {
-    return (
-      <Table
-        data={this.props.resultset.data}
-        columns={this.props.resultset.columns}
-        sortable={true}
-        className="table table-condensed"
-        />
-    );
+    if (this.props.resultset.data.length > 0) {
+      return (
+        <Table
+          data={this.props.resultset.data}
+          columns={this.props.resultset.columns}
+          sortable={true}
+          className="table table-condensed"/>
+      );
+    } else {
+      return(<Alert bsStyle="warning">The query returned no data</Alert>);
+    }
   }
 });
 

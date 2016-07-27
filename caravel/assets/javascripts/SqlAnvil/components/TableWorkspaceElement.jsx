@@ -36,6 +36,7 @@ const TableWorkspaceElement = React.createClass({
         <Link
             href="#"
             onClick={this.props.actions.expandTable.bind(this, this.props.table)}
+            placement="right"
             tooltip="Collapse the table's structure information">
           <i className="fa fa-minus"/> {this.props.table.name}
         </Link>

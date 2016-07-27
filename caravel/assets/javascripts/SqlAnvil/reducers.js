@@ -18,25 +18,6 @@ import {
   REMOVE_WORKSPACE_QUERY,
   SET_ACTIVE_QUERY_EDITOR,
 } from './actions';
-import shortid from 'shortid';
-
-var qe = {
-  id: shortid.generate(),
-  title: "Query 1",
-  sql: "SELECT *\nFROM\nWHERE",
-  latestQueryId: null,
-  autorun: false,
-  dbId: null,
-};
-
-const initialState = {
-  queryEditors: [qe],
-  queries: [],
-  tables: [],
-  workspaceQueries: [],
-  tabHistory: [qe.id],
-  workspaceDatabase: null,
-};
 
 function alterInArr(state, arrKey, obj, alterations, idKey = 'id') {
   // Finds an item in an array in the state and replaces it with a
@@ -73,7 +54,7 @@ function addToArr(state, arrKey, obj) {
   return Object.assign({}, state, newState);
 }
 
-function sqlAnvilReducer(state = initialState, action) {
+function sqlAnvilReducer(state, action) {
   var alts, tabHistory, qeIds;
   switch (action.type) {
 
@@ -93,7 +74,6 @@ function sqlAnvilReducer(state = initialState, action) {
       return newState;
 
     case REMOVE_QUERY:
-      console.log(action.query);
       return removeFromArr(state, 'queries', action.query);
 
     case ADD_TABLE:

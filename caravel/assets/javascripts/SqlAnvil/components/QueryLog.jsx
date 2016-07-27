@@ -29,13 +29,13 @@ const QueryLog = React.createClass({
     var data = this.props.queries.filter((q) => { return (q.sqlEditorId === activeQeId); });
     data = data.map((query) => {
       var q = Object.assign({}, query);
-      var since = (q.endDttm) ? q.endDttm : moment();
+      var since = (q.endDttm) ? q.endDttm : new Date();
       var duration = since.valueOf() - q.startDttm.valueOf();
       duration = moment.utc(duration);
       if (q.endDttm) {
         q.duration = duration.format('HH:mm:ss.SS');
       }
-      q.started = q.startDttm.format('HH:mm:ss');
+      q.started = moment(q.startDttm).format('HH:mm:ss');
       q.sql = <SyntaxHighlighter language="sql" style={github}>{q.sql}</SyntaxHighlighter>;
       q.state = (
         <span
@@ -47,7 +47,7 @@ const QueryLog = React.createClass({
       q.actions = (
         <div>
           <Link
-            className="fa fa-play"
+            className="fa fa-plus-circle"
             tooltip="Pop a tab containing this query"
             href="#"/>
           <Link
@@ -67,7 +67,7 @@ const QueryLog = React.createClass({
     if (data.length >0) {
       return (
         <Table
-            columns={['state', 'started', 'duration', 'tab', 'rows', 'sql', 'actions']}
+            columns={['state', 'started', 'duration', 'rows', 'sql', 'actions']}
             className="table table-condensed"
             data={data}/>
       )

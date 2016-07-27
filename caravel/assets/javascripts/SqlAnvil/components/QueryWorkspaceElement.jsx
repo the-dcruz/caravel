@@ -27,9 +27,15 @@ const QueryWorkspaceElement = React.createClass({
         {this.props.query.title}
         <ButtonGroup className="ws-el-controls pull-right">
           <Link
-              className="fa fa-play"
+              className="fa fa-plus-circle"
               onClick={this.popTab}
-              tooltip="Run query in a new tab"
+              tooltip="Pop this query in a new tab"
+              href="#"
+          />
+          <Link
+              className="fa fa-trash"
+              onClick={this.props.actions.removeWorkspaceQuery.bind(this, this.props.query)}
+              tooltip="Remove query from workspace"
               href="#"
           />
         </ButtonGroup>
