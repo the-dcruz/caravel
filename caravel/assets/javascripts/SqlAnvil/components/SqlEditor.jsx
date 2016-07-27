@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, ButtonGroup, Label, FormControl, FormGroup } from 'react-bootstrap';
+import { Button, ButtonGroup, DropdownButton, MenuItem, Label, FormControl, FormGroup } from 'react-bootstrap';
 
 import AceEditor from 'react-ace';
 import 'brace/mode/sql';
@@ -52,7 +52,7 @@ const SqlEditor = React.createClass({
   },
   stopwatch: function () {
     if (this.props.latestQuery) {
-      var duration = moment().valueOf() - this.props.latestQuery.startDttm.valueOf();
+      var duration = moment().valueOf() - moment(this.props.latestQuery.startDttm).valueOf();
       duration = moment.utc(duration);
       this.setState({ clockStr: duration.format('HH:mm:ss') });
       this.render();
@@ -67,7 +67,7 @@ const SqlEditor = React.createClass({
       state: 'running',
       tab: this.props.queryEditor.title,
       dbId: this.props.queryEditor.dbId,
-      startDttm: moment()
+      startDttm: new Date(),
     };
     var url = "//" + window.location.host + "/caravel/sql_json/"
     var data = {
@@ -100,7 +100,8 @@ const SqlEditor = React.createClass({
         that.props.actions.queryFailed(query, msg);
       },
     });
-    this.timer = setInterval(this.stopwatch, 500);
+    this.timer = setInterval(this.stopwatch, 50);
+    this.stopwatch();
   },
   stopQuery: function () {
     this.props.actions.stopQuery(this.props.latestQuery);
@@ -150,9 +151,9 @@ const SqlEditor = React.createClass({
       </ButtonGroup>);
     }
     var timerSpan = null;
-    if (this.props.latestQuery && this.props.latestQuery.state == 'running') {
+    if (this.props.latestQuery) {
       timerSpan= (
-        <span className="label label-warning inlineBlock">
+        <span className={"label label-warning inlineBlock m-r-5 " + this.props.latestQuery.state}>
           {this.state.clockStr}
         </span>
       );
@@ -161,19 +162,21 @@ const SqlEditor = React.createClass({
       <ButtonGroup className="inlineblock">
         <ButtonWithTooltip
             tooltip="Save this query in your workspace"
+            placement="left"
             onClick={this.addWorkspaceQuery}>
           <i className="fa fa-save"/>&nbsp;
         </ButtonWithTooltip>
-        <ButtonWithTooltip
-            tooltip="Export to .CSV"
-            onClick={this.notImplemented}>
-          <i className="fa fa-file-text-o"/>.csv
-        </ButtonWithTooltip>
-        <ButtonWithTooltip
-            tooltip="Export to .JSON"
-            onClick={this.notImplemented}>
-          <i className="fa fa-file-code-o"/>.json
-        </ButtonWithTooltip>
+        <DropdownButton pullRight title={<i className="fa fa-file-o"/>}>
+          <MenuItem
+              onClick={this.notImplemented}>
+            <i className="fa fa-file-text-o"/> export to .csv
+          </MenuItem>
+          <MenuItem
+              onClick={this.notImplemented}>
+            <i className="fa fa-file-code-o"/> export to .json
+          </MenuItem>
+        </DropdownButton>
+
       </ButtonGroup>
     );
     return (

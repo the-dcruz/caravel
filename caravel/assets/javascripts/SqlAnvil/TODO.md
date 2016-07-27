@@ -4,14 +4,11 @@
 * Where to make the limit clear?
 
 # TODO
-* SqlEditor: add a section around table features
-* Overwrite workspace query
-* Async
-* Security per-database
-* Add database info to query log
 * collapse sql beyond 10 lines
 * add [Visualize] icon to modal
-* hamburger icon 
+* Security per-database
+* Overwrite workspace query
+* Async
 
 
 ## Cosmetic
@@ -20,4 +17,9 @@
 * SqlEditor buttons
 * use react-bootstrap-prompt for query title input
 * make input:text more self-evident
-* Tab cosmetic in theeme
+* Tab cosmetic in theme
+
+# PROJECT
+* Write Runbook
+* Confirm backups
+* merge chef branch

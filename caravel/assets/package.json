@@ -75,6 +75,7 @@
     "react-syntax-highlighter": "^2.1.1",
     "reactable": "^0.13.2",
     "redux": "^3.5.2",
+    "redux-localstorage": "^0.4.1",
     "select2": "3.5",
     "select2-bootstrap-css": "^1.4.6",
     "shortid": "^2.2.6",
