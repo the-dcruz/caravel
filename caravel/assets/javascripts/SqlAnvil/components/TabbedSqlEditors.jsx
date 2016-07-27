@@ -55,7 +55,7 @@ const QueryEditors = React.createClass({
             <MenuItem eventKey="1" onClick={that.props.actions.removeQueryEditor.bind(that, qe)}>
               <i className="fa fa-close" /> close tab
             </MenuItem>
-            <MenuItem eventKey="2" onClick={that.renameTab.bind(this, qe)}>
+            <MenuItem eventKey="2" onClick={that.renameTab.bind(that, qe)}>
               <i className="fa fa-i-cursor" /> rename tab
             </MenuItem>
           </DropdownButton>

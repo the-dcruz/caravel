@@ -2,11 +2,11 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as Actions from '../actions';
-import { BootstrapTable } from 'react-bootstrap-table';
 import moment from 'moment'
 import Link from './Link'
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/styles';
+import { Table } from 'reactable';
 
 const STATE_COLOR_MAP = {
   failed: 'red',
@@ -62,18 +62,10 @@ const QueryLog = React.createClass({
       return q;
     }).reverse();
     return (
-      <BootstrapTable
-          condensed={true}
-          data={data}>
-        <TableHeaderColumn dataField="id" isKey={true} hidden={true}></TableHeaderColumn>
-        <TableHeaderColumn dataField="state" width="50">state</TableHeaderColumn>
-        <TableHeaderColumn dataField="started" width="50">started</TableHeaderColumn>
-        <TableHeaderColumn dataField="duration" width="70">duration</TableHeaderColumn>
-        <TableHeaderColumn dataField="tab">tab</TableHeaderColumn>
-        <TableHeaderColumn dataField="rows">rows</TableHeaderColumn>
-        <TableHeaderColumn dataField="sql">sql</TableHeaderColumn>
-        <TableHeaderColumn dataField="actions" width="60">actions</TableHeaderColumn>
-      </BootstrapTable>
+      <Table
+          columns={['state', 'started', 'duration', 'tab', 'rows', 'sql', 'actions']}
+          className="table table-condensed"
+          data={data}/>
     )
   }
 });
