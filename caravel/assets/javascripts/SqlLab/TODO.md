@@ -13,7 +13,6 @@
 
 ## Cosmetic
 * use icons for datatypes
-* Make BootstrapTable align columns properly
 * SqlEditor buttons
 * use react-bootstrap-prompt for query title input
 * make input:text more self-evident
