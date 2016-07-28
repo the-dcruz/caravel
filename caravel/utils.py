@@ -313,7 +313,7 @@ def json_int_dttm_ser(obj):
         return val
     if isinstance(obj, datetime):
         obj = (obj - EPOCH).total_seconds() * 1000
-    if isinstance(obj, date):
+    elif isinstance(obj, date):
         obj = (datetime.combine(obj, datetime.min.time()) - EPOCH).total_seconds() * 1000
     else:
         raise TypeError(
