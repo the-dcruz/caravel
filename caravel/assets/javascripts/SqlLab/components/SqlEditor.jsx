@@ -9,11 +9,11 @@ import 'brace/ext/language_tools';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as Actions from '../actions';
-import moment from 'moment';
 import shortid from 'shortid';
 import Select from 'react-select';
 import ButtonWithTooltip from './ButtonWithTooltip';
 import SouthPane from './SouthPane'
+import Timer from './Timer'
 
 
 // CSS
@@ -50,14 +50,6 @@ const SqlEditor = React.createClass({
     });
     this.render();
   },
-  stopwatch: function () {
-    if (this.props.latestQuery) {
-      var duration = moment().valueOf() - moment(this.props.latestQuery.startDttm).valueOf();
-      duration = moment.utc(duration);
-      this.setState({ clockStr: duration.format('HH:mm:ss') });
-      this.render();
-    }
-  },
   startQuery: function () {
     var that = this;
     var query = {
@@ -82,7 +74,6 @@ const SqlEditor = React.createClass({
       url,
       data,
       success: function (data) {
-        clearInterval(that.timer);
         try {
           that.props.actions.querySuccess(query, data);
         } catch (e) {
@@ -90,7 +81,6 @@ const SqlEditor = React.createClass({
         }
       },
       error: function (err, err2) {
-        clearInterval(this.timer);
         var msg = "";
         try {
           msg = err.responseJSON.msg;
@@ -100,12 +90,9 @@ const SqlEditor = React.createClass({
         that.props.actions.queryFailed(query, msg);
       },
     });
-    this.stopwatch();
-    this.timer = setInterval(this.stopwatch, 50);
   },
   stopQuery: function () {
     this.props.actions.stopQuery(this.props.latestQuery);
-    clearInterval(this.timer);
   },
   changeDb: function (db) {
     this.props.actions.queryEditorSetDb(this.props.queryEditor, db.value);
@@ -149,14 +136,6 @@ const SqlEditor = React.createClass({
           <a className="fa fa-stop"/> Stop
         </Button>
       </ButtonGroup>);
-    }
-    var timerSpan = null;
-    if (this.props.latestQuery) {
-      timerSpan= (
-        <span className={"label label-warning inlineBlock m-r-5 " + this.props.latestQuery.state}>
-          {this.state.clockStr}
-        </span>
-      );
     }
     var rightButtons = (
       <ButtonGroup className="inlineblock">
@@ -213,7 +192,7 @@ const SqlEditor = React.createClass({
                 </span>
               </div>
               <div className="pull-right">
-                {timerSpan}
+                <Timer query={this.props.latestQuery} />
                 {rightButtons}
               </div>
             </div>

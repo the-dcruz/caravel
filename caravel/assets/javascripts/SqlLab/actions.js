@@ -31,7 +31,7 @@ export function removeQueryEditor(queryEditor) {
 }
 
 export function removeQuery(query) {
-  return { type: REMOVE_QUERY, query};
+  return { type: REMOVE_QUERY, query };
 }
 
 export function queryEditorSetDb(queryEditor, dbId) {

@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react'
-import { Alert, Button, ButtonGroup } from 'react-bootstrap'
+import { Alert, Button, ButtonGroup, Label, Modal } from 'react-bootstrap'
 import Link from './Link'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -16,6 +16,7 @@ const Workspace = React.createClass({
   getInitialState: function() {
     return {
       tableName: null,
+      showAddTableModal: false,
       tableOptions: [],
       databaseOptions: [],
       tableLoading: false,
@@ -73,6 +74,12 @@ const Workspace = React.createClass({
   componentDidMount: function () {
     this.fetchDatabaseOptions();
   },
+  showAddTableModal: function () {
+    this.setState({ showAddTableModal: true });
+  },
+  hideAddTableModal: function () {
+    this.setState({ showAddTableModal: false });
+  },
   fetchDatabaseOptions: function(input, callback) {
     this.setState({ databaseLoading: true });
     var that = this;
@@ -90,7 +97,7 @@ const Workspace = React.createClass({
   render: function () {
     var tableElems = (
       <Alert bsStyle="info">
-        To add a table to your workspace, pick one from the dropdown above.
+        To add a table to your workspace, click the plus [+] sign above.
       </Alert>);
     if (this.props.tables.length > 0) {
       tableElems = this.props.tables.map(function (table) {
@@ -112,24 +119,28 @@ const Workspace = React.createClass({
         </Alert>
       );
     }
-    return (
-      <div className="panel panel-default Workspace">
-        <div className="panel-heading">
-          Workspace
-        </div>
-        <div className="panel-body">
-          <div>
-            <Select
-              name="select-db"
-              placeholder="[Database]"
-              options={this.state.databaseOptions}
-              disabled={(this.state.databaseOptions.length == 0)}
-              isLoading={(this.state.databaseOptions.length == 0)}
-              value={(this.props.workspaceDatabase) ? this.props.workspaceDatabase.id : null}
-              onChange={this.changeDb}
-              autosize={false}
-            />
+    const modal = (
+      <Modal show={this.state.showAddTableModal} onHide={this.hideAddTableModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add tables to workspace</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
             <div>
+              <h6>Database:</h6>
+              <Select
+                name="select-db"
+                placeholder="[Database]"
+                options={this.state.databaseOptions}
+                disabled={(this.state.databaseOptions.length == 0)}
+                isLoading={(this.state.databaseOptions.length == 0)}
+                value={(this.props.workspaceDatabase) ? this.props.workspaceDatabase.id : null}
+                onChange={this.changeDb}
+                autosize={false}
+              />
+            </div>
+            <br/>
+            <div>
+              <h6>Tables:</h6>
               <Select
                 disabled={(this.props.workspaceDatabase === null)}
                 ref="selectTable"
@@ -141,9 +152,25 @@ const Workspace = React.createClass({
                 onChange={this.changeTable}
                 options={this.state.tableOptions}/>
             </div>
-            <hr/>
-
-            <h6>Tables / Views</h6>
+        </Modal.Body>
+      </Modal>
+    );
+    return (
+      <div className="panel panel-default Workspace">
+        {modal}
+        <div className="panel-heading">
+          <h5>
+            <i className="fa fa-flask"/>
+            SQL Lab  <Label bsStyle="danger">ALPHA</Label>
+          </h5>
+        </div>
+        <div className="panel-body">
+          <div>
+            <h6>
+              Tables / Views <Link 
+                  className="fa fa-plus-circle"
+                  onClick={this.showAddTableModal}/>
+            </h6>
             <div>
               {tableElems}
             </div>

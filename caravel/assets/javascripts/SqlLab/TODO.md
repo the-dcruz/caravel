@@ -9,6 +9,7 @@
 * Security per-database
 * Overwrite workspace query
 * Async
+* Refactor timer in to its own thing
 
 
 ## Cosmetic
