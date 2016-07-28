@@ -100,8 +100,8 @@ const SqlEditor = React.createClass({
         that.props.actions.queryFailed(query, msg);
       },
     });
-    this.timer = setInterval(this.stopwatch, 50);
     this.stopwatch();
+    this.timer = setInterval(this.stopwatch, 50);
   },
   stopQuery: function () {
     this.props.actions.stopQuery(this.props.latestQuery);

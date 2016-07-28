@@ -1365,10 +1365,10 @@ class Caravel(BaseCaravelView):
         return self.render_template('caravel/welcome.html', utils=utils)
 
     @has_access
-    @expose("/sqlanvil")
+    @expose("/sqllab")
     def sqlanvil(self):
         """SQL Editor"""
-        return self.render_template('caravel/sqlanvil.html')
+        return self.render_template('caravel/sqllab.html')
 
 appbuilder.add_view_no_menu(Caravel)
 
@@ -1398,12 +1398,10 @@ appbuilder.add_view(
     category_label=__("Sources"),
     category_icon='')
 
-"""
 appbuilder.add_link(
-    "SQL",
-    href='/caravel/sqlanvil',
-    icon="fa-table")
-"""
+    "SQL Lab",
+    href='/caravel/sqllab',
+    icon="fa-flask")
 
 
 # ---------------------------------------------------------------------
