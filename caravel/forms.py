@@ -15,7 +15,7 @@ from wtforms import (
     BooleanField, IntegerField, HiddenField, DecimalField)
 from wtforms import validators, widgets
 
-from caravel import app
+from caravel import app, db
 
 config = app.config
 
@@ -135,6 +135,7 @@ class FormFactory(object):
             order_by_choices.append((json.dumps([s, True]), s + ' [asc]'))
             order_by_choices.append((json.dumps([s, False]), s + ' [desc]'))
         # Pool of all the fields that can be used in Caravel
+        from caravel import models
         field_data = {
             'viz_type': (SelectField, {
                 "label": _("Viz"),
@@ -960,6 +961,20 @@ class FormFactory(object):
                     ("rgb(34, 139, 34)", "Forest Green"),
                 ],
                 "description": _("The color for points and clusters in RGB")
+            }),
+            'enable_annotations': (BetterBooleanField, {
+                "label": _("Enable Annotations"),
+                "default": False,
+                "description": _("Enable annotations on this graph. Must choose "
+                                 "a source for annotation data.")
+            }),
+            'annotation_source': (FreeFormSelectField, {
+                "label": _("Annotation Source"),
+                "choices": [(table.id, table.full_name)
+                            for table
+                            in db.session.query(models.SqlaTable)
+                            .filter_by(annotation=True)],
+                "description": _("Source of annotation data")
             }),
         }
 

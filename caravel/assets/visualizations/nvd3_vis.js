@@ -53,6 +53,61 @@ const addTotalBarValues = function (chart, data, stacked) {
     });
 };
 
+const addVerticalLineAnnotations = function (chart, data) {
+  const svg = d3.select('svg');
+  svg.select('g.nv-linesWrap').append('g')
+    .attr('class', 'vertical-lines');
+
+  let annotationData = [];
+  let numAnnotations = Object.keys(data['annotation_ts']).length;
+  for (let i=0; i < numAnnotations; i++) {
+    annotationData.push({
+      'date': data['annotation_ts'][i],
+      'label': data['annotation_val'][i]
+    })
+  }
+
+  const vertLines = d3.select('.vertical-lines').selectAll('.vertical-line').data(annotationData);
+
+  var vertG = vertLines.enter()
+        .append('g')
+        .attr('class', 'vertical-line');
+
+  vertG.append('svg:line');
+  vertG.append('text');
+
+  vertLines.exit().remove();
+
+  vertLines.selectAll('line')
+    .attr('x1', function (d) {
+       return chart.xAxis.scale()(d.date);
+    })
+    .attr('x2', function (d) {
+      return chart.xAxis.scale()(d.date);
+    })
+    .attr('y1', chart.yAxis.scale().range()[0] )
+    .attr('y2', chart.yAxis.scale().range()[1] )
+    .style('stroke', 'blue');
+
+  vertLines.selectAll('text')
+    .text( function(d) { return d.label })
+    .attr('dy', '1em')
+    //x placement ; change dy above for minor adjustments but mainly
+    //    change the d.date/60/60/24/1000
+    //y placement ; change 2 to where you want vertical placement
+    //rotate -90 but feel free to change to what you would like
+    .attr('transform', function (d) {
+       return  'translate(' +
+        chart.xAxis.scale()(d.date) +
+        ',' +
+        chart.yAxis.scale()(2) +
+        ') rotate(-90)'
+    })
+    //also you can style however you would like
+    //here is an example changing the font size
+    .style('font-size','80%')
+};
+
 function nvd3Vis(slice) {
   let chart;
   let colorKey = 'key';
@@ -122,6 +177,12 @@ function nvd3Vis(slice) {
             chart.xAxis
             .showMaxMin(fd.x_axis_showminmax)
             .staggerLabels(false);
+
+            if (fd.enable_annotations) {
+              setTimeout(function () {
+                addVerticalLineAnnotations(chart, payload.annotations);
+              }, animationTime);
+            }
             break;
 
           case 'bar':

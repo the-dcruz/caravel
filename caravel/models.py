@@ -677,6 +677,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
     default_endpoint = Column(Text)
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
     is_featured = Column(Boolean, default=False)
+    annotation = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey('ab_user.id'))
     owner = relationship('User', backref='tables', foreign_keys=[user_id])
     database = relationship(
@@ -1051,6 +1052,37 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
         if not self.main_dttm_col:
             self.main_dttm_col = any_date_col
 
+    def get_annotations(self, from_dttm, to_dttm):
+        time_column = None
+        value_column = None
+        for column in self.table_columns:
+            if column.annotation_time:
+                time_column = column
+            if column.annotation_value:
+                value_column = column
+
+        if not time_column or not value_column:
+            return None
+
+        tbl = table(self.table_name)
+        select_exprs = [
+            time_column.sqla_col.label('annotation_ts'),
+            value_column.sqla_col.label('annotation_val')
+        ]
+        qry = select(select_exprs)
+        qry = qry.select_from(tbl)
+
+        engine = self.database.get_sqla_engine()
+        sql = "{}".format(
+            qry.compile(
+                engine, compile_kwargs={"literal_binds": True}, ),
+        )
+
+        return pd.read_sql_query(
+            sql=sql,
+            con=engine
+        )
+
 
 class SqlMetric(Model, AuditMixinNullable):
 
@@ -1106,6 +1138,8 @@ class TableColumn(Model, AuditMixinNullable):
     description = Column(Text, default='')
     python_date_format = Column(String(255))
     database_expression = Column(String(255))
+    annotation_time = Column(Boolean, default=False)
+    annotation_value = Column(Boolean, default=False)
 
     num_types = ('DOUBLE', 'FLOAT', 'INT', 'BIGINT', 'LONG')
     date_types = ('DATE', 'TIME')

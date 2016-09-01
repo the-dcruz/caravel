@@ -286,7 +286,8 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
     edit_columns = [
         'column_name', 'verbose_name', 'description', 'groupby', 'filterable',
         'table', 'count_distinct', 'sum', 'min', 'max', 'expression',
-        'is_dttm', 'python_date_format', 'database_expression']
+        'is_dttm', 'python_date_format', 'database_expression',
+        'annotation_time', 'annotation_value']
     add_columns = edit_columns
     list_columns = [
         'column_name', 'type', 'groupby', 'filterable', 'count_distinct',
@@ -333,7 +334,9 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
         'expression': _("Expression"),
         'is_dttm': _("Is temporal"),
         'python_date_format': _("Datetime Format"),
-        'database_expression': _("Database Expression")
+        'database_expression': _("Database Expression"),
+        'annotation_time': _("Annotation Time"),
+        'annotation_value': _("Annotation Value"),
     }
 appbuilder.add_view_no_menu(TableColumnInlineView)
 
@@ -558,10 +561,10 @@ class TableModelView(CaravelModelView, DeleteMixin):  # noqa
         'changed_by_', 'changed_on_']
     order_columns = [
         'link', 'database', 'is_featured', 'changed_on_']
-    add_columns = ['table_name', 'database', 'schema']
+    add_columns = ['table_name', 'database', 'schema', 'annotation']
     edit_columns = [
-        'table_name', 'sql', 'is_featured', 'database', 'schema',
-        'description', 'owner',
+        'table_name', 'sql', 'is_featured', 'annotation',
+        'database', 'schema','description', 'owner',
         'main_dttm_col', 'default_endpoint', 'offset', 'cache_timeout']
     related_views = [TableColumnInlineView, SqlMetricInlineView]
     base_order = ('changed_on', 'desc')
@@ -587,6 +590,7 @@ class TableModelView(CaravelModelView, DeleteMixin):  # noqa
         'database': _("Database"),
         'changed_on_': _("Last Changed"),
         'is_featured': _("Is Featured"),
+        'annotation': _("Annotation"),
         'schema': _("Schema"),
         'default_endpoint': _("Default Endpoint"),
         'offset': _("Offset"),

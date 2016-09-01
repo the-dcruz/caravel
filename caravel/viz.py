@@ -28,7 +28,7 @@ from werkzeug.datastructures import ImmutableMultiDict, MultiDict
 from werkzeug.urls import Href
 from dateutil import relativedelta as rdelta
 
-from caravel import app, utils, cache
+from caravel import app, db, utils, cache
 from caravel.forms import FormFactory
 from caravel.utils import flasher
 
@@ -287,7 +287,15 @@ class BaseViz(object):
             return self.datasource.database.cache_timeout
         return config.get("CACHE_DEFAULT_TIMEOUT")
 
+<<<<<<< HEAD
     def get_json(self, force=False):
+=======
+    def get_json(self):
+        payload = self.get_payload()
+        return self.json_dumps(payload)
+
+    def get_payload(self):
+>>>>>>> 31901a5... Annotation support in line chart
         """Handles caching around the json payload retrieval"""
         cache_key = self.cache_key
         payload = None
@@ -339,7 +347,7 @@ class BaseViz(object):
                 logging.exception(e)
                 cache.delete(cache_key)
         payload['is_cached'] = is_cached
-        return self.json_dumps(payload)
+        return payload
 
     def json_dumps(self, obj):
         """Used by get_json, can be overridden to use specific switches"""
@@ -1007,6 +1015,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
             ('line_interpolation', None),
             ('x_axis_format', 'y_axis_format'),
             ('x_axis_label', 'y_axis_label'),
+            ('enable_annotations', 'annotation_source'),
         ),
     }, {
         'label': _('Advanced Analytics'),
@@ -1141,6 +1150,23 @@ class NVD3TimeSeriesViz(NVD3Viz):
                 df2, classed='caravel', title_suffix="---")
             chart_data = sorted(chart_data, key=lambda x: x['key'])
         return chart_data
+
+    def get_annotations(self):
+        from caravel import models
+        datasource = (db.session.query(models.SqlaTable)
+                      .filter_by(id=self.form_data.get('annotation_source'))
+                      .first())
+        return datasource.get_annotations(None, None)
+
+    def get_json(self):
+        payload = super(NVD3TimeSeriesViz, self).get_payload()
+
+        if self.form_data.get('enable_annotations'):
+            annotations = self.get_annotations()
+            if annotations is not None:
+                payload['annotations'] = annotations.to_dict()
+
+        return self.json_dumps(payload)
 
 
 class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
