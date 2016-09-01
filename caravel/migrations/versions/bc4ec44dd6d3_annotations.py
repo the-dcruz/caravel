@@ -1,14 +1,14 @@
-"""empty message
+"""Add columns for annotation support
 
-Revision ID: df06627bcec6
-Revises: f162a1dea4c4
-Create Date: 2016-08-24 18:00:56.437531
+Revision ID: bc4ec44dd6d3
+Revises: 41f6a59a61f2
+Create Date: 2016-09-12 14:57:35.706872
 
 """
 
 # revision identifiers, used by Alembic.
-revision = 'df06627bcec6'
-down_revision = 'f162a1dea4c4'
+revision = 'bc4ec44dd6d3'
+down_revision = '41f6a59a61f2'
 
 from alembic import op
 import sqlalchemy as sa

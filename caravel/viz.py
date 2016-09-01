@@ -287,15 +287,11 @@ class BaseViz(object):
             return self.datasource.database.cache_timeout
         return config.get("CACHE_DEFAULT_TIMEOUT")
 
-<<<<<<< HEAD
     def get_json(self, force=False):
-=======
-    def get_json(self):
-        payload = self.get_payload()
+        payload = self.get_payload(force)
         return self.json_dumps(payload)
 
-    def get_payload(self):
->>>>>>> 31901a5... Annotation support in line chart
+    def get_payload(self, force=False):
         """Handles caching around the json payload retrieval"""
         cache_key = self.cache_key
         payload = None
