@@ -974,7 +974,14 @@ class FormFactory(object):
                             for table
                             in db.session.query(models.SqlaTable)
                             .filter_by(annotation=True)],
-                "description": _("Source of annotation data")
+                "description": _("Source of annotation data"),
+            }),
+            'annotation_filter': (SelectMultipleSortableField, {
+                "label": _("Annotation Filter"),
+                "choices": [(text, text) for text
+                            in viz.get_annotation_filter_choices(
+                                viz.orig_form_data.get('annotation_source')
+                            )]
             }),
         }
 

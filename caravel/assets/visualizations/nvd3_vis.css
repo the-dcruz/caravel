@@ -31,3 +31,18 @@ text.nv-axislabel {
 .bar svg.nvd3-svg {
   width: auto;
 }
+
+div.annotation_tooltip {
+  position: absolute;
+  width: 110px;
+  min-height: 28px;
+  padding: 7px;
+  font: 11px sans-serif;
+  font-weight: bold;
+  background: white;
+  border: 1px;
+  border-color: black;
+  border-style: solid;
+  border-radius: 4px;
+  pointer-events: none;
+}

@@ -291,7 +291,7 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
     add_columns = edit_columns
     list_columns = [
         'column_name', 'type', 'groupby', 'filterable', 'count_distinct',
-        'sum', 'min', 'max', 'is_dttm']
+        'sum', 'min', 'max', 'is_dttm', 'annotation_time', 'annotation_value', 'annotation_text']
     page_size = 500
     description_columns = {
         'is_dttm': (_(
@@ -337,6 +337,7 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
         'database_expression': _("Database Expression"),
         'annotation_time': _("Annotation Time"),
         'annotation_value': _("Annotation Value"),
+        'annotation_text': _("Annotation Text"),
     }
 appbuilder.add_view_no_menu(TableColumnInlineView)
 
