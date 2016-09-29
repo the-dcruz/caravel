@@ -770,8 +770,8 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
 
     def values_for_column(self,
                           column_name,
-                          from_dttm,
-                          to_dttm,
+                          from_dttm=None,
+                          to_dttm=None,
                           limit=500):
         """Runs query against sqla to retrieve some sample values for the given column."""
         granularity = self.main_dttm_col
@@ -779,19 +779,21 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
         cols = {col.column_name: col for col in self.columns}
         target_col = cols[column_name]
 
-        dttm_col = cols[granularity]
-        timestamp = dttm_col.sqla_col.label('timestamp')
-        time_filter = [
-            timestamp >= text(dttm_col.dttm_sql_literal(from_dttm)),
-            timestamp <= text(dttm_col.dttm_sql_literal(to_dttm)),
-        ]
-
         tbl = table(self.table_name)
         qry = select([target_col.sqla_col])
         qry = qry.select_from(tbl)
-        qry = qry.where(and_(*time_filter))
         qry = qry.distinct(column_name)
         qry = qry.limit(limit)
+
+        if granularity:
+            dttm_col = cols[granularity]
+            timestamp = dttm_col.sqla_col.label('timestamp')
+            time_filter = []
+            if from_dttm:
+                time_filter.append(timestamp >= text(dttm_col.dttm_sql_literal(from_dttm)))
+            if to_dttm:
+                time_filter.append(timestamp <= text(dttm_col.dttm_sql_literal(to_dttm)))
+            qry = qry.where(and_(*time_filter))
 
         engine = self.database.get_sqla_engine()
         sql = "{}".format(
@@ -996,7 +998,6 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
     def fetch_metadata(self):
         """Fetches the metadata for the table and merges it in"""
         try:
-            print('### Table Name: {}'.format(self.table_name))
             table = self.get_sqla_table_object()
         except Exception:
             raise Exception(
@@ -1344,7 +1345,8 @@ class DruidDatasource(Model, AuditMixinNullable, Queryable):
     @property
     def link(self):
         name = escape(self.datasource_name)
-        return Markup('<a href="{self.url}">{name}</a>').format(**locals())
+        url = self.url
+        return Markup('<a href="{url}">{name}</a>').format(**locals())
 
     @property
     def full_name(self):

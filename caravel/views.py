@@ -1947,6 +1947,31 @@ class Caravel(BaseCaravelView):
         """SQL Editor"""
         return self.render_template('caravel/sqllab.html')
 
+    @has_access_api
+    @expose("/annotations/<table_id>")
+    def annotation_filter(self, table_id):
+        sqla_table = db.session.query(
+            models.SqlaTable).filter_by(id=table_id).first()
+
+        # Find text column
+        text_column = None
+        for column in sqla_table.table_columns:
+            if column.annotation_text:
+                text_column = column.column_name
+
+        if not text_column:
+            return Response(
+                json.dumps({'error': "No annotation text column found."}),
+                status=403,
+                mimetype="application/json")
+
+        df = sqla_table.values_for_column(column_name=text_column)
+        return Response(
+            df[text_column].to_json(),
+            status=200,
+            mimetype="application/json")
+
+
 appbuilder.add_view_no_menu(Caravel)
 
 if config['DRUID_IS_ACTIVE']:

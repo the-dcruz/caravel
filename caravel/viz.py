@@ -1302,10 +1302,18 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
                       .filter_by(id=annotation_source)
                       .first())
 
+        if not datasource:
+            Exception("Annotations are Enabled. "
+                      "Please select an Annotation Source.")
+
         text_column = None
         for column in datasource.table_columns:
             if column.annotation_text:
                 text_column = column.column_name
+
+        if not text_column:
+            raise Exception("Please define a text column "
+                            "in the selected annotations source.")
 
         form_data = self.orig_form_data
 

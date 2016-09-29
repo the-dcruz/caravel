@@ -336,6 +336,50 @@ function initExploreView() {
   prepSaveDialog();
 }
 
+function getAnnotationFilters(annotationSource) {
+  let sqlaTableId = annotationSource;
+  if (sqlaTableId == null) {
+    sqlaTableId = px.getParam('annotation_source');
+    if (sqlaTableId == null) {
+      return;
+    }
+  }
+
+  const url = $(location).attr('protocol') + '//' +
+  $(location).attr('host') + '/caravel/annotations/' + sqlaTableId;
+  const annotationFilterSelect = $('#annotation_filter');
+  $.ajax({
+    method: 'GET',
+    url,
+    dataType: 'json',
+    contentType: 'application/json; charset=utf-8',
+  }).done(function (data) {
+    $(annotationFilterSelect).select2('destroy');
+    $(annotationFilterSelect).empty();
+
+    for (let key in data) {
+      const annotationText = data[key];
+      annotationFilterSelect.append($('<option></option>')
+        .attr('value', annotationText)
+        .html(annotationText));
+    }
+
+    $(annotationFilterSelect).select2();
+  }).fail(function () {
+    $(annotationFilterSelect).select2('destroy');
+    $(annotationFilterSelect).empty();
+    $(annotationFilterSelect).select2();
+  });
+}
+
+function initAnnotationForm() {
+  const annotationSource = $('#annotation_source');
+  annotationSource.change(function () {
+    getAnnotationFilters(annotationSource.val());
+  });
+  getAnnotationFilters(null);
+}
+
 function initComponents() {
   const queryAndSaveBtnsEl = document.getElementById('js-query-and-save-btns');
   ReactDOM.render(
@@ -354,6 +398,8 @@ function initComponents() {
     />,
     exploreActionsEl
   );
+
+  initAnnotationForm();
 }
 
 $(document).ready(function () {

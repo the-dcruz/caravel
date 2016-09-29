@@ -12,7 +12,7 @@ const minBarWidth = 15;
 const animationTime = 1000;
 
 const addTotalBarValues = function (containerId, chart, data, stacked) {
-  const svg = d3.select('#' + containerId);
+  const svg = d3.select('#' + containerId + ' svg');
   const format = d3.format('.3s');
   const countSeriesDisplayed = data.length;
 
@@ -67,7 +67,7 @@ function strToRGB(str) {
 }
 
 const addBarAnnotations = function (containerId, chart, data, numberFormat) {
-  const svg = d3.select('#' + containerId);
+  const svg = d3.select('#' + containerId + ' svg');
   const targetAnnotations = svg.select('g.nv-barsWrap').append('g');
 
 
@@ -298,14 +298,14 @@ function nvd3Vis(slice) {
               chart.forceY([0, yMax]);
 
               setTimeout(function () {
-                addBarAnnotations('svg_' + slice.containerId,
+                addBarAnnotations(slice.containerId,
                   chart, payload.annotations, fd.y_axis_format);
               }, animationTime);
             }
 
             if (fd.show_bar_value) {
               setTimeout(function () {
-                addTotalBarValues('svg_' + slice.containerId,
+                addTotalBarValues(slice.containerId,
                   chart, payload.data, stacked);
               }, animationTime);
             }
@@ -496,7 +496,6 @@ function nvd3Vis(slice) {
         .transition().duration(500)
         .attr('height', height)
         .attr('width', width)
-        .attr('id', 'svg_' + slice.containerId)
         .call(chart);
 
         if (fd.show_markers) {

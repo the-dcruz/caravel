@@ -135,7 +135,6 @@ class FormFactory(object):
             order_by_choices.append((json.dumps([s, True]), s + ' [asc]'))
             order_by_choices.append((json.dumps([s, False]), s + ' [desc]'))
         # Pool of all the fields that can be used in Caravel
-        from caravel import models
         field_data = {
             'viz_type': (SelectField, {
                 "label": _("Viz"),
@@ -968,12 +967,9 @@ class FormFactory(object):
                 "description": _("Enable annotations on this graph. Must choose "
                                  "a source for annotation data.")
             }),
-            'annotation_source': (FreeFormSelectField, {
+            'annotation_source': (SelectField, {
                 "label": _("Annotation Source"),
-                "choices": [(table.id, table.full_name)
-                            for table
-                            in db.session.query(models.SqlaTable)
-                            .filter_by(annotation=True)],
+                "choices": self.get_annotation_source_choices(),
                 "description": _("Source of annotation data"),
             }),
             'annotation_filter': (SelectMultipleSortableField, {
@@ -994,6 +990,17 @@ class FormFactory(object):
             field_name: v[0](**v[1])
             for field_name, v in field_data.items()
         }
+
+    @staticmethod
+    def get_annotation_source_choices():
+        from caravel import models
+
+        choices = [('None', '')]
+        choices.extend([(unicode(table.id), table.full_name)
+                       for table
+                       in db.session.query(models.SqlaTable)
+                       .filter_by(annotation=True)])
+        return choices
 
     @staticmethod
     def choicify(l):
