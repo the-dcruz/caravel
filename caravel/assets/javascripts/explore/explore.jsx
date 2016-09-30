@@ -357,7 +357,7 @@ function getAnnotationFilters(annotationSource) {
     $(annotationFilterSelect).select2('destroy');
     $(annotationFilterSelect).empty();
 
-    for (let key in data) {
+    for (const key in data) {
       const annotationText = data[key];
       annotationFilterSelect.append($('<option></option>')
         .attr('value', annotationText)

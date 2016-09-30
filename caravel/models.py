@@ -1346,7 +1346,7 @@ class DruidDatasource(Model, AuditMixinNullable, Queryable):
     def link(self):
         name = escape(self.datasource_name)
         url = self.url
-        return Markup('<a href="{url}">{name}</a>').format(**locals())
+        return Markup('<a href="{url}">{name}</a>').format(url=url, name=name)
 
     @property
     def full_name(self):
