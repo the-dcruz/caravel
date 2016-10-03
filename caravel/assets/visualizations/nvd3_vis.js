@@ -79,9 +79,23 @@ const addBarAnnotations = function (containerId, chart, data, numberFormat) {
     .attr('class', 'annotation_tooltip')
     .style('opacity', 0);
 
+  // Map of "timestamp-value" -> "text"
+  // to keep track of overlapping annotations
+  const annotationTextValues = {};
+
   data.forEach(
     function (annotation) {
-      const annotationColor = strToRGB(annotation.text);
+      const key = annotation.timestamp + '-' + annotation.value;
+      if (key in annotationTextValues) {
+        annotationTextValues[key] = annotationTextValues[key]
+          + '<br/><br/>'
+          + annotation.text;
+      } else {
+        annotationTextValues[key] = annotation.text;
+      }
+
+
+      const annotationColor = strToRGB(annotationTextValues[key]);
       const xAxisPosition = chart.xAxis.scale()(annotation.timestamp);
       if (isNaN(xAxisPosition)) {
         return;
@@ -105,8 +119,8 @@ const addBarAnnotations = function (containerId, chart, data, numberFormat) {
             .duration(200)
             .style('opacity', 0.8);
           div.html('<span>' +
-                    annotation.text +
-                  '</span><br/>' +
+                    annotationTextValues[key] +
+                  '</span><br/><br/>' +
                   '<span style="font-weight:normal;">' +
                       formatDate(annotation.timestamp) +
                   '</span><br/>' +

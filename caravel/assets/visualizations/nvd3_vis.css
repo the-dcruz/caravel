@@ -34,7 +34,8 @@ text.nv-axislabel {
 
 div.annotation_tooltip {
   position: absolute;
-  width: 110px;
+  min-width: 100px;
+  max-width: 200px;
   min-height: 28px;
   padding: 7px;
   font: 11px sans-serif;

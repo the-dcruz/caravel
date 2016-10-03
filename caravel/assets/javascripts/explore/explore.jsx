@@ -338,16 +338,17 @@ function initExploreView() {
 
 function getAnnotationFilters(annotationSource) {
   let sqlaTableId = annotationSource;
-  if (sqlaTableId == null) {
+  if (!sqlaTableId) {
     sqlaTableId = px.getParam('annotation_source');
-    if (sqlaTableId == null) {
+    if (!sqlaTableId || sqlaTableId === 'None') {
       return;
     }
   }
 
-  const url = $(location).attr('protocol') + '//' +
-  $(location).attr('host') + '/caravel/annotations/' + sqlaTableId;
   const annotationFilterSelect = $('#annotation_filter');
+  const url = $(location).attr('protocol') + '//' +
+    $(location).attr('host') + '/caravel/annotations/' + sqlaTableId;
+
   $.ajax({
     method: 'GET',
     url,
