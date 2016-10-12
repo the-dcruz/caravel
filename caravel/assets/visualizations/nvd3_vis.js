@@ -81,21 +81,31 @@ const addBarAnnotations = function (containerId, chart, data, numberFormat) {
 
   // Map of "timestamp-value" -> "text"
   // to keep track of overlapping annotations
-  const annotationTextValues = {};
+  const annotationTitleValues = {};
 
   data.forEach(
     function (annotation) {
       const key = annotation.timestamp + '-' + annotation.value;
-      if (key in annotationTextValues) {
-        annotationTextValues[key] = annotationTextValues[key]
+      if (key in annotationTitleValues) {
+        annotationTitleValues[key] = annotationTitleValues[key]
           + '<br/><br/>'
-          + annotation.text;
+          + '<span class="annotation_title">'
+          + annotation.title
+          + '</span>';
       } else {
-        annotationTextValues[key] = annotation.text;
+        annotationTitleValues[key] = '<span class="annotation_title">'
+          + annotation.title
+          + '</span>';
       }
 
+      if (annotation.description) {
+        annotationTitleValues[key] = annotationTitleValues[key]
+          +'<br/><span class="annotation_description">'
+          + annotation.description
+          + '</span>';
+      }
 
-      const annotationColor = strToRGB(annotationTextValues[key]);
+      const annotationColor = strToRGB(annotationTitleValues[key]);
       const xAxisPosition = chart.xAxis.scale()(annotation.timestamp);
       if (isNaN(xAxisPosition)) {
         return;
@@ -119,7 +129,7 @@ const addBarAnnotations = function (containerId, chart, data, numberFormat) {
             .duration(200)
             .style('opacity', 0.8);
           div.html('<span>' +
-                    annotationTextValues[key] +
+                    annotationTitleValues[key] +
                   '</span><br/><br/>' +
                   '<span style="font-weight:normal;">' +
                       formatDate(annotation.timestamp) +

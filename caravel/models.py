@@ -1179,7 +1179,8 @@ class TableColumn(Model, AuditMixinNullable):
     database_expression = Column(String(255))
     annotation_time = Column(Boolean, default=False)
     annotation_value = Column(Boolean, default=False)
-    annotation_text = Column(Boolean, default=False)
+    annotation_title = Column(Boolean, default=False)
+    annotation_desc = Column(Boolean, default=False)
 
     num_types = ('DOUBLE', 'FLOAT', 'INT', 'BIGINT', 'LONG')
     date_types = ('DATE', 'TIME')

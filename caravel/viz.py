@@ -1233,19 +1233,22 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
         if not datasource:
             raise Exception("Annotation datasource does not exist.")
 
-        time_column, value_column, text_column = None, None, None
+        time_column, value_column = None, None
+        title_column, desc_column = None, None
         for column in datasource.table_columns:
             if column.annotation_time:
                 time_column = column.column_name
             if column.annotation_value:
                 value_column = column.column_name
-            if column.annotation_text:
-                text_column = column.column_name
+            if column.annotation_title:
+                title_column = column.column_name
+            if column.annotation_desc:
+                desc_column = column.column_name
 
-            if time_column and value_column and text_column:
+            if time_column and value_column and title_column:
                 break
 
-        if not time_column or not value_column or not text_column:
+        if not time_column or not value_column or not title_column:
             raise Exception("Time, Text, and Value columns must "
                             "be selected in annotation table source.")
 
@@ -1254,11 +1257,14 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
         query_obj['groupby'] = None
         query_obj['metrics'] = []
         query_obj['filter'] = []
-        query_obj['columns'] = [value_column, text_column]
+        query_obj['columns'] = [value_column, title_column]
+
+        if desc_column:
+            query_obj['columns'].append(desc_column)
 
         if annotation_filters:
             cols = {col.column_name: col for col in datasource.columns}
-            in_clause = cols[text_column].sqla_col.in_(annotation_filters)
+            in_clause = cols[title_column].sqla_col.in_(annotation_filters)
             engine = datasource.database.get_sqla_engine()
             query_obj['extras']['where'] = '{}'.format(in_clause.compile(
                 engine, compile_kwargs={"literal_binds": True}, ))
@@ -1268,9 +1274,15 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
         annotations = datasource.query(**query_obj).df
         if not annotations.empty:
             annotations = annotations.set_index('timestamp')
-            annotations = annotations.groupby([pd.TimeGrouper(freq=freq), text_column]).sum()
+            grouby_columns = [pd.TimeGrouper(freq=freq), title_column]
+            if desc_column:
+                grouby_columns.append(desc_column)
+            annotations = annotations.groupby(grouby_columns).sum()
             annotations = annotations.reset_index()
-            annotations.columns = ['timestamp', 'text', 'value']
+            if desc_column:
+                annotations.columns = ['timestamp', 'title', 'description', 'value']
+            else:
+                annotations.columns = ['timestamp', 'title', 'value']
 
         return annotations
 
@@ -1306,13 +1318,13 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
             Exception("Annotations are Enabled. "
                       "Please select an Annotation Source.")
 
-        text_column = None
+        title_column = None
         for column in datasource.table_columns:
-            if column.annotation_text:
-                text_column = column.column_name
+            if column.annotation_title:
+                title_column = column.column_name
 
-        if not text_column:
-            raise Exception("Please define a text column "
+        if not title_column:
+            raise Exception("Please define a title column "
                             "in the selected annotations source.")
 
         form_data = self.orig_form_data
@@ -1329,12 +1341,12 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
             from_dttm = to_dttm  # Making them identical to not raise
 
         kwargs = dict(
-            column_name=text_column,
+            column_name=title_column,
             from_dttm=from_dttm,
             to_dttm=to_dttm,
         )
         df = datasource.values_for_column(**kwargs)
-        return df[text_column]
+        return df[title_column]
 
 
 class NVD3CompareTimeSeriesViz(NVD3TimeSeriesViz):

@@ -291,7 +291,8 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
     add_columns = edit_columns
     list_columns = [
         'column_name', 'type', 'groupby', 'filterable', 'count_distinct',
-        'sum', 'min', 'max', 'is_dttm', 'annotation_time', 'annotation_value', 'annotation_text']
+        'sum', 'min', 'max', 'is_dttm',
+        'annotation_time', 'annotation_value', 'annotation_title', 'annotation_desc']
     page_size = 500
     description_columns = {
         'is_dttm': (_(
@@ -337,7 +338,8 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
         'database_expression': _("Database Expression"),
         'annotation_time': _("Annotation Time"),
         'annotation_value': _("Annotation Value"),
-        'annotation_text': _("Annotation Text"),
+        'annotation_title': _("Annotation Title"),
+        'annotation_desc': _("Annotation Description"),
     }
 appbuilder.add_view_no_menu(TableColumnInlineView)
 
@@ -1953,21 +1955,21 @@ class Caravel(BaseCaravelView):
         sqla_table = db.session.query(
             models.SqlaTable).filter_by(id=table_id).first()
 
-        # Find text column
-        text_column = None
+        # Find title column
+        title_column = None
         for column in sqla_table.table_columns:
-            if column.annotation_text:
-                text_column = column.column_name
+            if column.annotation_title:
+                title_column = column.column_name
 
-        if not text_column:
+        if not title_column:
             return Response(
                 json.dumps({'error': "No annotation text column found."}),
                 status=403,
                 mimetype="application/json")
 
-        df = sqla_table.values_for_column(column_name=text_column)
+        df = sqla_table.values_for_column(column_name=title_column)
         return Response(
-            df[text_column].to_json(),
+            df[title_column].to_json(),
             status=200,
             mimetype="application/json")
 

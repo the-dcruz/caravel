@@ -47,3 +47,12 @@ div.annotation_tooltip {
   border-radius: 4px;
   pointer-events: none;
 }
+
+span.annotation_title {
+  font: 11px sans-serif;
+  font-weight: bold;
+}
+
+span.annotation_description {
+  font: 11px sans-serif;
+}

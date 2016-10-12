@@ -18,11 +18,13 @@ def upgrade():
     op.add_column('tables', sa.Column('annotation', sa.Boolean(), server_default='0'))
     op.add_column('table_columns', sa.Column('annotation_time', sa.Boolean(), server_default='0'))
     op.add_column('table_columns', sa.Column('annotation_value', sa.Boolean(), server_default='0'))
-    op.add_column('table_columns', sa.Column('annotation_text', sa.Boolean(), server_default='0'))
+    op.add_column('table_columns', sa.Column('annotation_title', sa.Boolean(), server_default='0'))
+    op.add_column('table_columns', sa.Column('annotation_desc', sa.Boolean(), server_default='0'))
 
 
 def downgrade():
     op.drop_column('tables', 'annotation')
     op.drop_column('table_columns', 'annotation_time')
     op.drop_column('table_columns', 'annotation_value')
-    op.drop_column('table_columns', 'annotation_text')
+    op.drop_column('table_columns', 'annotation_title')
+    op.drop_column('table_columns', 'annotation_desc')
