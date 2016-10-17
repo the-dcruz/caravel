@@ -11,8 +11,8 @@ require('./nvd3_vis.css');
 const minBarWidth = 15;
 const animationTime = 1000;
 
-const addTotalBarValues = function (chart, data, stacked) {
-  const svg = d3.select('svg');
+const addTotalBarValues = function (containerId, chart, data, stacked) {
+  const svg = d3.select('#' + containerId + ' svg');
   const format = d3.format('.3s');
   const countSeriesDisplayed = data.length;
 
@@ -52,6 +52,158 @@ const addTotalBarValues = function (chart, data, stacked) {
       t.attr('x', xPos + rectWidth / 2 - labelWidth / 2); // fine tune
     });
 };
+
+function strToRGB(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const c = (hash & 0x00FFFFFF)
+    .toString(16)
+    .toUpperCase();
+
+  return '0000'.substring(0, 6 - c.length) + c;
+}
+
+const addBarAnnotations = function (containerId, chart, data, numberFormat) {
+  const svg = d3.select('#' + containerId + ' svg');
+  const targetAnnotations = svg.select('g.nv-barsWrap').append('g');
+
+
+  const barWidth = parseFloat(d3.select('#' + containerId + ' g.nv-group rect')
+    .attr('width'));
+
+  const div = d3.select('body')
+    .append('div')
+    .attr('class', 'annotation_tooltip')
+    .style('opacity', 0);
+
+  // Map of "timestamp-value" -> "text"
+  // to keep track of overlapping annotations
+  const annotationTitleValues = {};
+
+  data.forEach(
+    function (annotation) {
+      const key = annotation.timestamp + '-' + annotation.value;
+      if (key in annotationTitleValues) {
+        annotationTitleValues[key] = annotationTitleValues[key]
+          + '<br/><br/>'
+          + '<span class="annotation_title">'
+          + annotation.title
+          + '</span>';
+      } else {
+        annotationTitleValues[key] = '<span class="annotation_title">'
+          + annotation.title
+          + '</span>';
+      }
+
+      if (annotation.description) {
+        annotationTitleValues[key] = annotationTitleValues[key]
+          +'<br/><span class="annotation_description">'
+          + annotation.description
+          + '</span>';
+      }
+
+      const annotationColor = strToRGB(annotationTitleValues[key]);
+      const xAxisPosition = chart.xAxis.scale()(annotation.timestamp);
+      if (isNaN(xAxisPosition)) {
+        return;
+      }
+
+      targetAnnotations.append('svg:rect')
+        .attr('x', xAxisPosition + barWidth * 0.1)
+        .attr('y', chart.yAxis.scale()(
+          annotation.value) - 1.5)
+        .attr('width', barWidth * 0.8)
+        .attr('height', 3)
+        .style('fill', annotationColor)
+        .style('stroke', annotationColor)
+        .on('mouseover', function () {
+          d3.event.stopPropagation();
+          const rect = d3.select(this);
+          rect.style('fill', annotationColor);
+          rect.style('stroke', annotationColor);
+          rect.attr('opacity', 0.5);
+          div.transition()
+            .duration(200)
+            .style('opacity', 0.8);
+          div.html('<span>' +
+                    annotationTitleValues[key] +
+                  '</span><br/><br/>' +
+                  '<span style="font-weight:normal;">' +
+                      formatDate(annotation.timestamp) +
+                  '</span><br/>' +
+                  '<span>' +
+                    'Value: ' +
+                      d3.format(numberFormat)(annotation.value) +
+                  '</span>')
+            .style('left', (d3.event.pageX) + 25 + 'px')
+            .style('top', (d3.event.pageY - 30) + 'px');
+        })
+        .on('mouseout', function () {
+          d3.event.stopPropagation();
+          const rect = d3.select(this);
+          rect.style('fill', annotationColor);
+          rect.style('stroke', annotationColor);
+          rect.attr('opacity', 1);
+          div.transition()
+            .duration(200)
+            .style('opacity', 0);
+        });
+    }
+  );
+};
+
+// const addVerticalLineAnnotations = function (chart, data) {
+//   const svg = d3.select('svg');
+//   svg.select('g.nv-linesWrap').append('g')
+//     .attr('class', 'vertical-lines');
+//
+//   let annotationData = [];
+//   let numAnnotations = Object.keys(data['annotation_ts']).length;
+//   for (let i=0; i < numAnnotations; i++) {
+//     annotationData.push({
+//       'date': data['annotation_ts'][i],
+//       'label': data['annotation_val'][i]
+//     })
+//   }
+//
+//   const vertLines = d3.select('.vertical-lines')
+//     .selectAll('.vertical-line').data(annotationData);
+//
+//   var vertG = vertLines.enter()
+//         .append('g')
+//         .attr('class', 'vertical-line');
+//
+//   vertG.append('svg:line');
+//   vertG.append('text');
+//
+//   vertLines.exit().remove();
+//
+//   vertLines.selectAll('line')
+//     .attr('x1', function (d) {
+//        return chart.xAxis.scale()(d.date);
+//     })
+//     .attr('x2', function (d) {
+//       return chart.xAxis.scale()(d.date);
+//     })
+//     .attr('y1', chart.yAxis.scale().range()[0] )
+//     .attr('y2', chart.yAxis.scale().range()[1] )
+//     .style('stroke', 'blue');
+//
+//   vertLines.selectAll('text')
+//     .text( function(d) { return d.label })
+//     .attr('dy', '1em')
+//     .attr('transform', function (d) {
+//        return  'translate(' +
+//         chart.xAxis.scale()(d.date) +
+//         ',' +
+//         chart.yAxis.scale()(2) +
+//         ') rotate(-90)'
+//     })
+//     .style('font-size','80%')
+// };
 
 function nvd3Vis(slice) {
   let chart;
@@ -122,6 +274,12 @@ function nvd3Vis(slice) {
             chart.xAxis
             .showMaxMin(fd.x_axis_showminmax)
             .staggerLabels(false);
+
+            // if (fd.enable_annotations) {
+            //   setTimeout(function () {
+            //     addVerticalLineAnnotations(chart, payload.annotations);
+            //   }, animationTime);
+            // }
             break;
 
           case 'bar':
@@ -140,9 +298,39 @@ function nvd3Vis(slice) {
             stacked = fd.bar_stacked;
             chart.stacked(stacked);
 
+            if (fd.enable_annotations) {
+              const chartData = payload.data[0].values;
+              const latestDataDate = chartData[chartData.length - 1].x;
+
+              const dateValues = {};
+              chartData.forEach(function (barData) {
+                dateValues[barData.x] = true;
+              });
+
+              let yMax = 0;
+              payload.annotations.forEach(function (annotation) {
+                const annotationTimestamp = annotation.timestamp;
+                if (!(annotationTimestamp in dateValues)) {
+                  if (annotationTimestamp > latestDataDate) {
+                    chartData.push({ x: annotationTimestamp, y: 0 });
+                  }
+                }
+
+                yMax = yMax > annotation.value ?
+                  yMax : annotation.value;
+              });
+              chart.forceY([0, yMax]);
+
+              setTimeout(function () {
+                addBarAnnotations(slice.containerId,
+                  chart, payload.annotations, fd.y_axis_format);
+              }, animationTime);
+            }
+
             if (fd.show_bar_value) {
               setTimeout(function () {
-                addTotalBarValues(chart, payload.data, stacked);
+                addTotalBarValues(slice.containerId,
+                  chart, payload.data, stacked);
               }, animationTime);
             }
             break;

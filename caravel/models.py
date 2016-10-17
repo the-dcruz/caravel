@@ -677,6 +677,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
     default_endpoint = Column(Text)
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
     is_featured = Column(Boolean, default=False)
+    annotation = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey('ab_user.id'))
     owner = relationship('User', backref='tables', foreign_keys=[user_id])
     database = relationship(
@@ -766,6 +767,44 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
         for col in columns:
             if col_name == col.column_name:
                 return col
+
+    def values_for_column(self,
+                          column_name,
+                          from_dttm=None,
+                          to_dttm=None,
+                          limit=500):
+        """Runs query against sqla to retrieve some sample values for the given column."""
+        granularity = self.main_dttm_col
+
+        cols = {col.column_name: col for col in self.columns}
+        target_col = cols[column_name]
+
+        tbl = table(self.table_name)
+        qry = select([target_col.sqla_col])
+        qry = qry.select_from(tbl)
+        qry = qry.distinct(column_name)
+        qry = qry.limit(limit)
+
+        if granularity:
+            dttm_col = cols[granularity]
+            timestamp = dttm_col.sqla_col.label('timestamp')
+            time_filter = []
+            if from_dttm:
+                time_filter.append(timestamp >= text(dttm_col.dttm_sql_literal(from_dttm)))
+            if to_dttm:
+                time_filter.append(timestamp <= text(dttm_col.dttm_sql_literal(to_dttm)))
+            qry = qry.where(and_(*time_filter))
+
+        engine = self.database.get_sqla_engine()
+        sql = "{}".format(
+            qry.compile(
+                engine, compile_kwargs={"literal_binds": True}, ),
+        )
+
+        return pd.read_sql_query(
+            sql=sql,
+            con=engine
+        )
 
     def query(  # sqla
             self, groupby, metrics,
@@ -949,6 +988,7 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
             con=engine
         )
         sql = sqlparse.format(sql, reindent=True)
+
         return QueryResult(
             df=df, duration=datetime.now() - qry_start_dttm, query=sql)
 
@@ -1051,6 +1091,37 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
         if not self.main_dttm_col:
             self.main_dttm_col = any_date_col
 
+    def get_annotations(self, from_dttm, to_dttm):
+        time_column = None
+        value_column = None
+        for column in self.table_columns:
+            if column.annotation_time:
+                time_column = column
+            if column.annotation_value:
+                value_column = column
+
+        if not time_column or not value_column:
+            return None
+
+        tbl = table(self.table_name)
+        select_exprs = [
+            time_column.sqla_col.label('annotation_ts'),
+            value_column.sqla_col.label('annotation_val')
+        ]
+        qry = select(select_exprs)
+        qry = qry.select_from(tbl)
+
+        engine = self.database.get_sqla_engine()
+        sql = "{}".format(
+            qry.compile(
+                engine, compile_kwargs={"literal_binds": True}, ),
+        )
+
+        return pd.read_sql_query(
+            sql=sql,
+            con=engine
+        )
+
 
 class SqlMetric(Model, AuditMixinNullable):
 
@@ -1106,6 +1177,10 @@ class TableColumn(Model, AuditMixinNullable):
     description = Column(Text, default='')
     python_date_format = Column(String(255))
     database_expression = Column(String(255))
+    annotation_time = Column(Boolean, default=False)
+    annotation_value = Column(Boolean, default=False)
+    annotation_title = Column(Boolean, default=False)
+    annotation_desc = Column(Boolean, default=False)
 
     num_types = ('DOUBLE', 'FLOAT', 'INT', 'BIGINT', 'LONG')
     date_types = ('DATE', 'TIME')
@@ -1271,7 +1346,8 @@ class DruidDatasource(Model, AuditMixinNullable, Queryable):
     @property
     def link(self):
         name = escape(self.datasource_name)
-        return Markup('<a href="{self.url}">{name}</a>').format(**locals())
+        url = self.url
+        return Markup('<a href="{url}">{name}</a>').format(url=url, name=name)
 
     @property
     def full_name(self):

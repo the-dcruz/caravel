@@ -20,6 +20,7 @@ from dateutil.parser import parse
 from flask import flash, Markup
 from flask_appbuilder.security.sqla import models as ab_models
 from markdown import markdown as md
+from semantic.numbers import NumberService
 from sqlalchemy.types import TypeDecorator, TEXT
 from pydruid.utils.having import Having
 
@@ -165,6 +166,15 @@ def parse_human_datetime(s):
             logging.exception(e)
             raise ValueError("Couldn't parse date string [{}]".format(s))
     return dttm
+
+
+def parse_natural_language_number(n):
+    """
+    :param n: natural language number e.g. Two hundred and six
+    :return: double representation of the words w.g. 206
+    """
+    service = NumberService()
+    return service.parse(n)
 
 
 def dttm_from_timtuple(d):

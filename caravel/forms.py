@@ -15,7 +15,7 @@ from wtforms import (
     BooleanField, IntegerField, HiddenField, DecimalField)
 from wtforms import validators, widgets
 
-from caravel import app
+from caravel import app, db
 
 config = app.config
 
@@ -961,6 +961,24 @@ class FormFactory(object):
                 ],
                 "description": _("The color for points and clusters in RGB")
             }),
+            'enable_annotations': (BetterBooleanField, {
+                "label": _("Enable Annotations"),
+                "default": False,
+                "description": _("Enable annotations on this graph. Must choose "
+                                 "a source for annotation data.")
+            }),
+            'annotation_source': (SelectField, {
+                "label": _("Annotation Source"),
+                "choices": self.get_annotation_source_choices(),
+                "description": _("Source of annotation data"),
+            }),
+            'annotation_filter': (SelectMultipleSortableField, {
+                "label": _("Annotation Filter"),
+                "choices": [(text, text) for text
+                            in viz.get_annotation_filter_choices(
+                                viz.orig_form_data.get('annotation_source')
+                            )]
+            }),
         }
 
         # Override default arguments with form overrides
@@ -972,6 +990,17 @@ class FormFactory(object):
             field_name: v[0](**v[1])
             for field_name, v in field_data.items()
         }
+
+    @staticmethod
+    def get_annotation_source_choices():
+        from caravel import models
+
+        choices = [('None', '')]
+        choices.extend([(unicode(table.id), table.full_name)
+                       for table
+                       in db.session.query(models.SqlaTable)
+                       .filter_by(annotation=True)])
+        return choices
 
     @staticmethod
     def choicify(l):
