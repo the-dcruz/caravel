@@ -7,3 +7,4 @@ recursive-exclude caravel/static/spec *
 recursive-exclude tests *
 recursive-include caravel/data *
 recursive-include caravel/migrations *
+include run_prod.sh
