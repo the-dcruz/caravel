@@ -11,6 +11,7 @@ from __future__ import unicode_literals
 import copy
 import hashlib
 import logging
+import re
 import uuid
 import zlib
 
@@ -28,9 +29,9 @@ from werkzeug.datastructures import ImmutableMultiDict, MultiDict
 from werkzeug.urls import Href
 from dateutil import relativedelta as rdelta
 
-from caravel import app, utils, cache
+from caravel import app, db, utils, cache
 from caravel.forms import FormFactory
-from caravel.utils import flasher
+from caravel.utils import flasher, parse_natural_language_number
 
 config = app.config
 
@@ -288,6 +289,10 @@ class BaseViz(object):
         return config.get("CACHE_DEFAULT_TIMEOUT")
 
     def get_json(self, force=False):
+        payload = self.get_payload(force)
+        return self.json_dumps(payload)
+
+    def get_payload(self, force=False):
         """Handles caching around the json payload retrieval"""
         cache_key = self.cache_key
         payload = None
@@ -339,7 +344,7 @@ class BaseViz(object):
                 logging.exception(e)
                 cache.delete(cache_key)
         payload['is_cached'] = is_cached
-        return self.json_dumps(payload)
+        return payload
 
     def json_dumps(self, obj):
         """Used by get_json, can be overridden to use specific switches"""
@@ -349,7 +354,7 @@ class BaseViz(object):
     def data(self):
         """This is the data object serialized to the js layer"""
         content = {
-            'csv_endpoint': self.csv_endpoint,
+            'csv_end*point': self.csv_endpoint,
             'form_data': self.form_data,
             'json_endpoint': self.json_endpoint,
             'standalone_endpoint': self.standalone_endpoint,
@@ -369,6 +374,9 @@ class BaseViz(object):
         return df.to_csv(index=include_index, encoding="utf-8")
 
     def get_data(self):
+        return []
+
+    def get_annotation_filter_choices(self, annotation_source):
         return []
 
     @property
@@ -1142,6 +1150,23 @@ class NVD3TimeSeriesViz(NVD3Viz):
             chart_data = sorted(chart_data, key=lambda x: x['key'])
         return chart_data
 
+    def get_annotations(self):
+        from caravel import models
+        datasource = (db.session.query(models.SqlaTable)
+                      .filter_by(id=self.form_data.get('annotation_source'))
+                      .first())
+        return datasource.get_annotations(None, None)
+
+    def get_json(self):
+        payload = super(NVD3TimeSeriesViz, self).get_payload()
+
+        if self.form_data.get('enable_annotations'):
+            annotations = self.get_annotations()
+            if annotations is not None:
+                payload['annotations'] = annotations.to_dict()
+
+        return self.json_dumps(payload)
+
 
 class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
 
@@ -1150,18 +1175,178 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
     viz_type = "bar"
     sort_series = True
     verbose_name = _("Time Series - Bar Chart")
-    fieldsets = [NVD3TimeSeriesViz.fieldsets[0]] + [{
-        'label': _('Chart Options'),
-        'fields': (
-            ('show_brush', 'show_legend', 'show_bar_value'),
-            ('rich_tooltip', 'y_axis_zero'),
-            ('y_log_scale', 'contribution'),
-            ('x_axis_format', 'y_axis_format'),
-            ('line_interpolation', 'bar_stacked'),
-            ('x_axis_showminmax', 'bottom_margin'),
-            ('x_axis_label', 'y_axis_label'),
-            ('reduce_x_ticks', 'show_controls'),
-        ), }] + [NVD3TimeSeriesViz.fieldsets[2]]
+    fieldsets = [NVD3TimeSeriesViz.fieldsets[0]] + [
+        {
+            'label': _('Chart Options'),
+            'fields': (
+                ('show_brush', 'show_legend', 'show_bar_value'),
+                ('rich_tooltip', 'y_axis_zero'),
+                ('y_log_scale', 'contribution'),
+                ('x_axis_showminmax', 'bar_stacked'),
+                ('reduce_x_ticks', 'show_controls'),
+                ('x_axis_format', 'y_axis_format'),
+                ('line_interpolation', 'bottom_margin'),
+                ('x_axis_label', 'y_axis_label'),
+            ),
+        }, {
+            'label': _('Annotation Options'),
+            'fields': (
+                ('enable_annotations'),
+                ('annotation_source'),
+                ('annotation_filter')
+            ),
+        }
+    ] + [NVD3TimeSeriesViz.fieldsets[2]]
+
+    TIMEGROUPER_MAPPING = {
+        'second': 'S',
+        'minute': 'T',
+        'hour': 'H',
+        'day': 'D',
+        'week': 'W',
+        'month': 'M',
+        'year': 'A',
+    }
+
+    def _get_timegrouper_freq(self):
+        from caravel.models import DruidDatasource
+        if isinstance(self.datasource, DruidDatasource):
+            gran = self.form_data.get('granularity').strip().lower()
+            duration_val, duration_unit = gran.rstrip('s').split()
+            duration_val = parse_natural_language_number(duration_val)
+            freq = str(int(duration_val)) + self.TIMEGROUPER_MAPPING[duration_unit]
+
+        return freq
+
+    def get_bar_annotations(self):
+        annotation_source = self.form_data.get('annotation_source')
+        annotation_filters = self.form_data.get('annotation_filter')
+        if not annotation_source or str(annotation_source) == 'None':
+            raise Exception("Annotations are enabled but no "
+                            "annotation source is selected.")
+
+        from caravel.models import SqlaTable
+        datasource = (db.session.query(SqlaTable)
+                      .filter_by(id=self.form_data.get('annotation_source'))
+                      .first())
+
+        if not datasource:
+            raise Exception("Annotation datasource does not exist.")
+
+        time_column, value_column = None, None
+        title_column, desc_column = None, None
+        for column in datasource.table_columns:
+            if column.annotation_time:
+                time_column = column.column_name
+            if column.annotation_value:
+                value_column = column.column_name
+            if column.annotation_title:
+                title_column = column.column_name
+            if column.annotation_desc:
+                desc_column = column.column_name
+
+            if time_column and value_column and title_column:
+                break
+
+        if not time_column or not value_column or not title_column:
+            raise Exception("Time, Text, and Value columns must "
+                            "be selected in annotation table source.")
+
+        query_obj = self.query_obj()
+        query_obj['granularity'] = time_column
+        query_obj['groupby'] = None
+        query_obj['metrics'] = []
+        query_obj['filter'] = []
+        query_obj['columns'] = [value_column, title_column]
+
+        if desc_column:
+            query_obj['columns'].append(desc_column)
+
+        if annotation_filters:
+            cols = {col.column_name: col for col in datasource.columns}
+            in_clause = cols[title_column].sqla_col.in_(annotation_filters)
+            engine = datasource.database.get_sqla_engine()
+            query_obj['extras']['where'] = '{}'.format(in_clause.compile(
+                engine, compile_kwargs={"literal_binds": True}, ))
+
+        freq = self._get_timegrouper_freq()  # Translated Granularity
+
+        annotations = datasource.query(**query_obj).df
+        if not annotations.empty:
+            annotations = annotations.set_index('timestamp')
+            grouby_columns = [pd.TimeGrouper(freq=freq), title_column]
+            if desc_column:
+                grouby_columns.append(desc_column)
+            annotations = annotations.groupby(grouby_columns).sum()
+            annotations = annotations.reset_index()
+            if desc_column:
+                annotations.columns = ['timestamp', 'title', 'description', 'value']
+            else:
+                annotations.columns = ['timestamp', 'title', 'value']
+
+        return annotations
+
+    def get_json(self):
+        payload = super(NVD3TimeSeriesBarViz, self).get_payload()
+
+        if self.form_data.get('enable_annotations'):
+            annotations = self.get_bar_annotations()
+            payload['annotations'] = annotations.to_dict(orient='records')
+
+        return self.json_dumps(payload)
+
+    def get_annotation_filter_choices(self, annotation_source):
+        """
+        Retrieves values for a column to be used by the filter dropdown.
+        :param annotation_source:  SQLA Table ID
+        :return: JSON containing the some values for a column
+        """
+
+        form_data = self.orig_form_data
+
+        if (not annotation_source
+            or not form_data.get('enable_annotations')
+            or form_data.get('enable_annotations') == u'false'):
+            return []
+
+        from caravel.models import SqlaTable
+        datasource = (db.session.query(SqlaTable)
+                      .filter_by(id=annotation_source)
+                      .first())
+
+        if not datasource:
+            Exception("Annotations are Enabled. "
+                      "Please select an Annotation Source.")
+
+        title_column = None
+        for column in datasource.table_columns:
+            if column.annotation_title:
+                title_column = column.column_name
+
+        if not title_column:
+            raise Exception("Please define a title column "
+                            "in the selected annotations source.")
+
+        form_data = self.orig_form_data
+
+        since = form_data.get("since", "1 year ago")
+        from_dttm = utils.parse_human_datetime(since)
+        now = datetime.now()
+        if from_dttm > now:
+            from_dttm = now - (from_dttm - now)
+        until = form_data.get("until", "now")
+        to_dttm = utils.parse_human_datetime(until)
+        if from_dttm > to_dttm:
+            flasher("The date range doesn't seem right.", "danger")
+            from_dttm = to_dttm  # Making them identical to not raise
+
+        kwargs = dict(
+            column_name=title_column,
+            from_dttm=from_dttm,
+            to_dttm=to_dttm,
+        )
+        df = datasource.values_for_column(**kwargs)
+        return df[title_column]
 
 
 class NVD3CompareTimeSeriesViz(NVD3TimeSeriesViz):

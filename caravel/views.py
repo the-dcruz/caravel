@@ -286,11 +286,13 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
     edit_columns = [
         'column_name', 'verbose_name', 'description', 'groupby', 'filterable',
         'table', 'count_distinct', 'sum', 'min', 'max', 'expression',
-        'is_dttm', 'python_date_format', 'database_expression']
+        'is_dttm', 'python_date_format', 'database_expression',
+        'annotation_time', 'annotation_value']
     add_columns = edit_columns
     list_columns = [
         'column_name', 'type', 'groupby', 'filterable', 'count_distinct',
-        'sum', 'min', 'max', 'is_dttm']
+        'sum', 'min', 'max', 'is_dttm',
+        'annotation_time', 'annotation_value', 'annotation_title', 'annotation_desc']
     page_size = 500
     description_columns = {
         'is_dttm': (_(
@@ -333,7 +335,11 @@ class TableColumnInlineView(CompactCRUDMixin, CaravelModelView):  # noqa
         'expression': _("Expression"),
         'is_dttm': _("Is temporal"),
         'python_date_format': _("Datetime Format"),
-        'database_expression': _("Database Expression")
+        'database_expression': _("Database Expression"),
+        'annotation_time': _("Annotation Time"),
+        'annotation_value': _("Annotation Value"),
+        'annotation_title': _("Annotation Title"),
+        'annotation_desc': _("Annotation Description"),
     }
 appbuilder.add_view_no_menu(TableColumnInlineView)
 
@@ -558,10 +564,10 @@ class TableModelView(CaravelModelView, DeleteMixin):  # noqa
         'changed_by_', 'changed_on_']
     order_columns = [
         'link', 'database', 'is_featured', 'changed_on_']
-    add_columns = ['table_name', 'database', 'schema']
+    add_columns = ['table_name', 'database', 'schema', 'annotation']
     edit_columns = [
-        'table_name', 'sql', 'is_featured', 'database', 'schema',
-        'description', 'owner',
+        'table_name', 'sql', 'is_featured', 'annotation',
+        'database', 'schema','description', 'owner',
         'main_dttm_col', 'default_endpoint', 'offset', 'cache_timeout']
     related_views = [TableColumnInlineView, SqlMetricInlineView]
     base_order = ('changed_on', 'desc')
@@ -587,6 +593,7 @@ class TableModelView(CaravelModelView, DeleteMixin):  # noqa
         'database': _("Database"),
         'changed_on_': _("Last Changed"),
         'is_featured': _("Is Featured"),
+        'annotation': _("Annotation"),
         'schema': _("Schema"),
         'default_endpoint': _("Default Endpoint"),
         'offset': _("Offset"),
@@ -1941,6 +1948,31 @@ class Caravel(BaseCaravelView):
     def sqlanvil(self):
         """SQL Editor"""
         return self.render_template('caravel/sqllab.html')
+
+    @has_access_api
+    @expose("/annotations/<table_id>")
+    def annotation_filter(self, table_id):
+        sqla_table = db.session.query(
+            models.SqlaTable).filter_by(id=table_id).first()
+
+        # Find title column
+        title_column = None
+        for column in sqla_table.table_columns:
+            if column.annotation_title:
+                title_column = column.column_name
+
+        if not title_column:
+            return Response(
+                json.dumps({'error': "No annotation text column found."}),
+                status=403,
+                mimetype="application/json")
+
+        df = sqla_table.values_for_column(column_name=title_column)
+        return Response(
+            df[title_column].to_json(),
+            status=200,
+            mimetype="application/json")
+
 
 appbuilder.add_view_no_menu(Caravel)
 
