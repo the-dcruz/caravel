@@ -299,25 +299,28 @@ function nvd3Vis(slice) {
             chart.stacked(stacked);
 
             if (fd.enable_annotations) {
-              const chartData = payload.data[0].values;
-              const latestDataDate = chartData[chartData.length - 1].x;
-
-              const dateValues = {};
-              chartData.forEach(function (barData) {
-                dateValues[barData.x] = true;
-              });
-
               let yMax = 0;
-              payload.annotations.forEach(function (annotation) {
-                const annotationTimestamp = annotation.timestamp;
-                if (!(annotationTimestamp in dateValues)) {
-                  if (annotationTimestamp > latestDataDate) {
-                    chartData.push({ x: annotationTimestamp, y: 0 });
-                  }
-                }
 
-                yMax = yMax > annotation.value ?
-                  yMax : annotation.value;
+              payload.data.forEach(function (data) {
+                const chartData = data.values;
+                const latestDataDate = chartData[chartData.length - 1].x;
+
+                const dateValues = {};
+                chartData.forEach(function (barData) {
+                  dateValues[barData.x] = true;
+                });
+
+                payload.annotations.forEach(function (annotation) {
+                  const annotationTimestamp = annotation.timestamp;
+                  if (!(annotationTimestamp in dateValues)) {
+                    if (annotationTimestamp > latestDataDate) {
+                      chartData.push({x: annotationTimestamp, y: 0});
+                    }
+                  }
+
+                  yMax = yMax > annotation.value ?
+                    yMax : annotation.value;
+                });
               });
               chart.forceY([0, yMax]);
 
