@@ -8,7 +8,6 @@ const nv = require('nvd3');
 require('../node_modules/nvd3/build/nv.d3.min.css');
 require('./nvd3_vis.css');
 
-const minBarWidth = 15;
 const animationTime = 1000;
 
 const addTotalBarValues = function (containerId, chart, data, stacked) {
@@ -43,10 +42,11 @@ const addTotalBarValues = function (containerId, chart, data, stacked) {
       const xPos = parseFloat(rectObj.attr('x'));
       const rectWidth = parseFloat(rectObj.attr('width'));
       const t = groupLabels.append('text')
-        .attr('x', xPos) // rough position first, fine tune later
-        .attr('y', yPos - 5)
+        .attr('x', xPos + 5) // rough position first, fine tune later
+        .attr('y', yPos)
+        .style('font-size', '10px')
         .text(format(stacked ? totalStackedValues[index] : d.y))
-        .attr('transform', transformAttr)
+        .attr('transform', transformAttr + 'rotate(-45,' + xPos + ',' + yPos +')')
         .attr('class', 'bar-chart-label');
       const labelWidth = t.node().getBBox().width;
       t.attr('x', xPos + rectWidth / 2 - labelWidth / 2); // fine tune
@@ -239,10 +239,14 @@ function nvd3Vis(slice) {
 
       const barchartWidth = function () {
         let bars;
+        let minBarWidth = 0;
         if (fd.bar_stacked) {
           bars = d3.max(payload.data, function (d) { return d.values.length; });
         } else {
           bars = d3.sum(payload.data, function (d) { return d.values.length; });
+        }
+        if (fd.show_bar_value) {
+          minBarWidth = 10;
         }
         if (bars * minBarWidth > width) {
           return bars * minBarWidth;
@@ -299,25 +303,28 @@ function nvd3Vis(slice) {
             chart.stacked(stacked);
 
             if (fd.enable_annotations) {
-              const chartData = payload.data[0].values;
-              const latestDataDate = chartData[chartData.length - 1].x;
-
-              const dateValues = {};
-              chartData.forEach(function (barData) {
-                dateValues[barData.x] = true;
-              });
-
               let yMax = 0;
-              payload.annotations.forEach(function (annotation) {
-                const annotationTimestamp = annotation.timestamp;
-                if (!(annotationTimestamp in dateValues)) {
-                  if (annotationTimestamp > latestDataDate) {
-                    chartData.push({ x: annotationTimestamp, y: 0 });
-                  }
-                }
 
-                yMax = yMax > annotation.value ?
-                  yMax : annotation.value;
+              payload.data.forEach(function (data) {
+                const chartData = data.values;
+                const latestDataDate = chartData[chartData.length - 1].x;
+
+                const dateValues = {};
+                chartData.forEach(function (barData) {
+                  dateValues[barData.x] = true;
+                });
+
+                payload.annotations.forEach(function (annotation) {
+                  const annotationTimestamp = annotation.timestamp;
+                  if (!(annotationTimestamp in dateValues)) {
+                    if (annotationTimestamp > latestDataDate) {
+                      chartData.push({x: annotationTimestamp, y: 0});
+                    }
+                  }
+
+                  yMax = yMax > annotation.value ?
+                    yMax : annotation.value;
+                });
               });
               chart.forceY([0, yMax]);
 

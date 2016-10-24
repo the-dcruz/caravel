@@ -354,7 +354,7 @@ class BaseViz(object):
     def data(self):
         """This is the data object serialized to the js layer"""
         content = {
-            'csv_end*point': self.csv_endpoint,
+            'csv_endpoint': self.csv_endpoint,
             'form_data': self.form_data,
             'json_endpoint': self.json_endpoint,
             'standalone_endpoint': self.standalone_endpoint,
