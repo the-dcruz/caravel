@@ -1086,6 +1086,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
                 df = pd.rolling_std(df, int(rolling_periods), min_periods=0)
             elif rolling_type == 'sum':
                 df = pd.rolling_sum(df, int(rolling_periods), min_periods=0)
+            df = df.iloc[rolling_periods:]
         elif rolling_type == 'cumsum':
             df = df.cumsum()
         return df
@@ -1131,7 +1132,24 @@ class NVD3TimeSeriesViz(NVD3Viz):
         return chart_data
 
     def get_data(self):
-        df = self.get_df()
+        form_data = self.form_data
+        query_object = self.query_obj()
+
+        rolling_periods = form_data.get("rolling_periods")
+        rolling_type = form_data.get("rolling_type")
+
+        if rolling_type in ('mean', 'std', 'sum') and rolling_periods:
+            granularity = (
+                form_data.get("granularity") or form_data.get("granularity_sqla")
+            )
+            delta = utils.parse_human_timedelta(granularity)
+            delta *= rolling_periods
+
+            from_dttm = query_object.get('from_dttm')
+            from_dttm -= delta
+            query_object['from_dttm'] = from_dttm
+
+        df = self.get_df(query_object)
         chart_data = self.to_series(df)
 
         time_compare = self.form_data.get('time_compare')
