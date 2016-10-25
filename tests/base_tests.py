@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import imp
+import json
 import os
 import unittest
 
@@ -81,6 +82,12 @@ class CaravelTestCase(unittest.TestCase):
 
         utils.init(caravel)
 
+    def get_or_create(self, cls, criteria, session):
+        obj = session.query(cls).filter_by(**criteria).first()
+        if not obj:
+            obj = cls(**criteria)
+        return obj
+
     def login(self, username='admin', password='general'):
         resp = self.client.post(
             '/login/',
@@ -104,10 +111,40 @@ class CaravelTestCase(unittest.TestCase):
         session.close()
         return query
 
+    def get_slice(self, slice_name, session):
+        slc = (
+            session.query(models.Slice)
+            .filter_by(slice_name=slice_name)
+            .one()
+        )
+        session.expunge_all()
+        return slc
+
+    def get_table_by_name(self, name):
+        return db.session.query(models.SqlaTable).filter_by(
+            table_name=name).first()
+
+    def get_druid_ds_by_name(self, name):
+        return db.session.query(models.DruidDatasource).filter_by(
+            datasource_name=name).first()
+
+
     def get_resp(self, url):
         """Shortcut to get the parsed results while following redirects"""
         resp = self.client.get(url, follow_redirects=True)
         return resp.data.decode('utf-8')
+
+    def get_json_resp(self, url):
+        """Shortcut to get the parsed results while following redirects"""
+        resp = self.get_resp(url)
+        return json.loads(resp)
+
+    def get_main_database(self, session):
+        return (
+            db.session.query(models.Database)
+            .filter_by(database_name='main')
+            .first()
+        )
 
     def get_access_requests(self, username, ds_type, ds_id):
             DAR = models.DatasourceAccessRequest
@@ -123,11 +160,6 @@ class CaravelTestCase(unittest.TestCase):
 
     def logout(self):
         self.client.get('/logout/', follow_redirects=True)
-
-    def test_welcome(self):
-        self.login()
-        resp = self.client.get('/caravel/welcome')
-        assert 'Welcome' in resp.data.decode('utf-8')
 
     def setup_public_access_for_dashboard(self, table_name):
         public_role = appbuilder.sm.find_role('Public')

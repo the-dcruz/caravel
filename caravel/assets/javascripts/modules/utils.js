@@ -103,7 +103,24 @@ function d3format(format, number) {
   }
   return formatters[format](number);
 }
+
+// Slice objects interact with their context through objects that implement
+// this controllerInterface (dashboard, explore, standalone)
+const controllerInterface = {
+  type: null,
+  done: () => {},
+  error: () => {},
+  always: () => {},
+  addFiler: () => {},
+  setFilter: () => {},
+  getFilters: () => false,
+  clearFilter: () => {},
+  removeFilter: () => {},
+  filters: {},
+};
+
 module.exports = {
+  controllerInterface,
   d3format,
   fixDataTableBodyHeight,
   showModal,

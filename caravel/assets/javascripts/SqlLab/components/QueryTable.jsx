@@ -6,21 +6,46 @@ import * as Actions from '../actions';
 
 import moment from 'moment';
 import { Table } from 'reactable';
-import { ProgressBar } from 'react-bootstrap';
+import { Label, ProgressBar } from 'react-bootstrap';
 import Link from './Link';
 import VisualizeModal from './VisualizeModal';
-import SqlShrink from './SqlShrink';
+import ResultSet from './ResultSet';
+import ModalTrigger from '../../components/ModalTrigger';
+import HighlightedSql from './HighlightedSql';
 import { STATE_BSSTYLE_MAP } from '../common';
 import { fDuration } from '../../modules/dates';
+import { getLink } from '../../../utils/common';
+
+const propTypes = {
+  columns: React.PropTypes.array,
+  actions: React.PropTypes.object,
+  queries: React.PropTypes.array,
+  onUserClicked: React.PropTypes.func,
+  onDbClicked: React.PropTypes.func,
+};
+const defaultProps = {
+  columns: ['started', 'duration', 'rows'],
+  queries: [],
+  onUserClicked: () => {},
+  onDbClicked: () => {},
+};
 
 
 class QueryTable extends React.Component {
   constructor(props) {
     super(props);
+    const uri = window.location.toString();
+    const cleanUri = uri.substring(0, uri.indexOf('#'));
     this.state = {
+      cleanUri,
       showVisualizeModal: false,
       activeQuery: null,
     };
+  }
+  getQueryLink(dbId, sql) {
+    const params = ['dbid=' + dbId, 'sql=' + sql, 'title=Untitled Query'];
+    const link = getLink(this.state.cleanUri, params);
+    return encodeURI(link);
   }
   hideVisualizeModal() {
     this.setState({ showVisualizeModal: false });
@@ -32,22 +57,66 @@ class QueryTable extends React.Component {
   restoreSql(query) {
     this.props.actions.queryEditorSetSql({ id: query.sqlEditorId }, query.sql);
   }
-  notImplemented() {
-    /* eslint no-alert: 0 */
-    alert('Not implemented yet!');
+
+  openQueryInNewTab(query) {
+    this.props.actions.cloneQueryToNewTab(query);
   }
+  openAsyncResults(query) {
+    this.props.actions.fetchQueryResults(query);
+  }
+  clearQueryResults(query) {
+    this.props.actions.clearQueryResults(query);
+  }
+
   render() {
     const data = this.props.queries.map((query) => {
       const q = Object.assign({}, query);
       if (q.endDttm) {
         q.duration = fDuration(q.startDttm, q.endDttm);
       }
+      q.user = (
+        <button
+          className="btn btn-link btn-xs"
+          onClick={this.props.onUserClicked.bind(this, q.userId)}
+        >
+          {q.user}
+        </button>
+      );
+      q.db = (
+        <button
+          className="btn btn-link btn-xs"
+          onClick={this.props.onDbClicked.bind(this, q.dbId)}
+        >
+          {q.db}
+        </button>
+      );
       q.started = moment(q.startDttm).format('HH:mm:ss');
       const source = (q.ctas) ? q.executedSql : q.sql;
       q.sql = (
-        <SqlShrink sql={source} />
+        <HighlightedSql sql={source} shrink maxWidth={100} />
       );
-      q.output = q.tempTable;
+      if (q.resultsKey) {
+        q.output = (
+          <ModalTrigger
+            bsSize="large"
+            className="ResultsModal"
+            triggerNode={(
+              <Label
+                bsStyle="info"
+                style={{ cursor: 'pointer' }}
+              >
+                view results
+              </Label>
+            )}
+            modalTitle={'Data preview'}
+            beforeOpen={this.openAsyncResults.bind(this, query)}
+            onExit={this.clearQueryResults.bind(this, query)}
+            modalBody={<ResultSet showSql query={query} />}
+          />
+        );
+      } else {
+        q.output = q.tempTable;
+      }
       q.progress = (
         <ProgressBar
           style={{ width: '75px' }}
@@ -87,7 +156,7 @@ class QueryTable extends React.Component {
           />
           <Link
             className="fa fa-plus-circle m-r-3"
-            onClick={self.notImplemented}
+            onClick={this.openQueryInNewTab.bind(this, query)}
             tooltip="Run query in a new tab"
             placement="top"
           />
@@ -98,11 +167,20 @@ class QueryTable extends React.Component {
           />
         </div>
       );
-
+      q.querylink = (
+        <div style={{ width: '100px' }}>
+          <a
+            href={this.getQueryLink(q.dbId, source)}
+            className="btn btn-primary btn-xs"
+          >
+            <i className="fa fa-external-link" />Open in SQL Editor
+          </a>
+        </div>
+      );
       return q;
     }).reverse();
     return (
-      <div>
+      <div className="QueryTable">
         <VisualizeModal
           show={this.state.showVisualizeModal}
           query={this.state.activeQuery}
@@ -117,15 +195,8 @@ class QueryTable extends React.Component {
     );
   }
 }
-QueryTable.propTypes = {
-  columns: React.PropTypes.array,
-  actions: React.PropTypes.object,
-  queries: React.PropTypes.array,
-};
-QueryTable.defaultProps = {
-  columns: ['started', 'duration', 'rows'],
-  queries: [],
-};
+QueryTable.propTypes = propTypes;
+QueryTable.defaultProps = defaultProps;
 
 function mapStateToProps() {
   return {};
@@ -135,4 +206,5 @@ function mapDispatchToProps(dispatch) {
     actions: bindActionCreators(Actions, dispatch),
   };
 }
+export { QueryTable };
 export default connect(mapStateToProps, mapDispatchToProps)(QueryTable);
