@@ -11,15 +11,12 @@ class DatabaseSelect extends React.Component {
     this.state = {
       databaseLoading: false,
       databaseOptions: [],
-      databaseId: null,
     };
   }
   componentDidMount() {
     this.fetchDatabaseOptions();
   }
   changeDb(db) {
-    const val = (db) ? db.value : null;
-    this.setState({ databaseId: val });
     this.props.onChange(db);
   }
   fetchDatabaseOptions() {
@@ -38,10 +35,11 @@ class DatabaseSelect extends React.Component {
           name="select-db"
           placeholder={`Select a database (${this.state.databaseOptions.length})`}
           options={this.state.databaseOptions}
-          value={this.state.databaseId}
+          value={this.props.databaseId}
           isLoading={this.state.databaseLoading}
           autosize={false}
           onChange={this.changeDb.bind(this)}
+          valueRenderer={this.props.valueRenderer}
         />
       </div>
     );
@@ -51,6 +49,13 @@ class DatabaseSelect extends React.Component {
 DatabaseSelect.propTypes = {
   onChange: React.PropTypes.func,
   actions: React.PropTypes.object,
+  databaseId: React.PropTypes.number,
+  valueRenderer: React.PropTypes.func,
+};
+
+DatabaseSelect.defaultProps = {
+  onChange: () => {},
+  databaseId: null,
 };
 
 function mapDispatchToProps(dispatch) {

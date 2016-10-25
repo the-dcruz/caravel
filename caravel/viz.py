@@ -105,7 +105,7 @@ class BaseViz(object):
     def reassignments(self):
         pass
 
-    def get_url(self, for_cache_key=False, **kwargs):
+    def get_url(self, for_cache_key=False, json_endpoint=False, **kwargs):
         """Returns the URL for the viz
 
         :param for_cache_key: when getting the url as the identifier to hash
@@ -141,8 +141,12 @@ class BaseViz(object):
             for item in v:
                 od.add(key, item)
 
+        base_endpoint = '/caravel/explore'
+        if json_endpoint:
+            base_endpoint = '/caravel/explore_json'
+
         href = Href(
-            '/caravel/explore/{self.datasource.type}/'
+            '{base_endpoint}/{self.datasource.type}/'
             '{self.datasource.id}/'.format(**locals()))
         if for_cache_key and 'force' in od:
             del od['force']
@@ -172,7 +176,7 @@ class BaseViz(object):
         # If the datetime format is unix, the parse will use the corresponding
         # parsing logic.
         if df is None or df.empty:
-            raise Exception("No data, review your incantations!")
+            raise utils.NoDataException("No data.")
         else:
             if 'timestamp' in df.columns:
                 if timestamp_format in ("epoch_s", "epoch_ms"):
@@ -237,6 +241,7 @@ class BaseViz(object):
             form_data.get("granularity") or form_data.get("granularity_sqla")
         )
         limit = int(form_data.get("limit", 0))
+        timeseries_limit_metric = form_data.get("timeseries_limit_metric")
         row_limit = int(
             form_data.get("row_limit", config.get("ROW_LIMIT")))
         since = (
@@ -272,6 +277,7 @@ class BaseViz(object):
             'filter': self.query_filters(),
             'timeseries_limit': limit,
             'extras': extras,
+            'timeseries_limit_metric': timeseries_limit_metric,
         }
         return d
 
@@ -325,6 +331,7 @@ class BaseViz(object):
                 'json_endpoint': self.json_endpoint,
                 'query': self.query,
                 'standalone_endpoint': self.standalone_endpoint,
+                'column_formats': self.data['column_formats'],
             }
             payload['cached_dttm'] = datetime.now().isoformat().split('.')[0]
             logging.info("Caching for the next {} seconds".format(
@@ -381,7 +388,7 @@ class BaseViz(object):
 
     @property
     def json_endpoint(self):
-        return self.get_url(json="true")
+        return self.get_url(json_endpoint=True)
 
     @property
     def cache_key(self):
@@ -1003,7 +1010,8 @@ class NVD3TimeSeriesViz(NVD3Viz):
         'label': None,
         'fields': (
             'metrics',
-            'groupby', 'limit',
+            'groupby',
+            ('limit', 'timeseries_limit_metric'),
         ),
     }, {
         'label': _('Chart Options'),
@@ -1235,7 +1243,7 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
 
         time_column, value_column = None, None
         title_column, desc_column = None, None
-        for column in datasource.table_columns:
+        for column in datasource.columns:
             if column.annotation_time:
                 time_column = column.column_name
             if column.annotation_value:
@@ -1319,7 +1327,7 @@ class NVD3TimeSeriesBarViz(NVD3TimeSeriesViz):
                       "Please select an Annotation Source.")
 
         title_column = None
-        for column in datasource.table_columns:
+        for column in datasource.columns:
             if column.annotation_title:
                 title_column = column.column_name
 
@@ -1446,7 +1454,6 @@ class HistogramViz(BaseViz):
         }
     }
 
-
     def query_obj(self):
         """Returns the query object for this visualization"""
         d = super(HistogramViz, self).query_obj()
@@ -1456,7 +1463,6 @@ class HistogramViz(BaseViz):
             raise Exception("Must have one numeric column specified")
         d['columns'] = [numeric_column]
         return d
-
 
     def get_df(self, query_obj=None):
         """Returns a pandas dataframe based on the query object"""
@@ -1473,7 +1479,6 @@ class HistogramViz(BaseViz):
         df.replace([np.inf, -np.inf], np.nan)
         df = df.fillna(0)
         return df
-
 
     def get_data(self):
         """Returns the chart data"""
@@ -1839,6 +1844,7 @@ class FilterBoxViz(BaseViz):
         'groupby': {
             'label': _('Filter fields'),
             'description': _("The fields you want to filter on"),
+            'default': [],
         },
     }
 
